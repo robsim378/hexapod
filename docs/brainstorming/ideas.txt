@@ -1,0 +1,128 @@
+- Find or build simulation platform for testing software without having hardware
+
+- Write software to control movements
+	- Should be decoupled from actual hardware. An interface layer should be used to allow the same code to control the robot and the simulation
+		- e.g. "move forward" input received -> movement software determines how legs should move -> hardware interface layer determines what signals to send to the servos
+			- Alternatively, simulation interface layer determines what commands to send to the simulation platform to cause movement
+	- If the forward input is held, paths for the legs should be found to keep the body moving forward and not swaying side to side.
+	- In lateral movement, there should be no rotation. A gyroscope or compass will likely be needed for this.
+	- In rotation, centre of mass should remain unchanged
+	- All possible combinations of inputs should work regardless of their magnitude.
+	- Stride speed and length should be adjusted depending on input magnitude
+		- Short, slow movements for small input. Long, fast movements for big input.
+	- Gait height and width should be adjusted to ensure robot does not collide with terrain
+	- Leg paths should avoid disturbances in terrain where possible (e.g. stepping on an unstable rock could cause problems)
+		- Pick a relatively flat spot to place the foot
+		- At high speeds, there will be few places since there will only be a small area to place the leg for max stride length
+		- At low speeds, there will be a larger area to search
+			- If no stable spot can be found in the area but one can be found by reducing the stride length, reduce it for all legs on this step.
+				- This will slightly slow down the robot but ensure stability, which may be faster in the long run
+					- Test to see if it actually does go faster by slowing down briefly to stay stable
+	- Centre of mass should always be kept within bounds of legs
+	- At least 3 legs should always be on the ground.
+	- Experiment with changing input
+		- Should legs finish their assigned paths before accepting new input or can their paths be changed?
+			- Paths being changeable would likely result in a more responsive feeling robot, but may be very difficult
+		- How much smoothing, if any, should there be?
+	- Body should be able to be moved and positioned as needed
+		- Possibly using motion controls in the controller and syncing the gyroscopes
+		- Movement in this state may be tricky but should be doable
+	- Maybe program in a little dance/emote on a button
+		- Any other input should immediately cancel this
+	- Should be able to self-right if flipped
+	- Switch between wave, ripple, and tripod gait depending on speed. Choose a more stable one when less speed is needed.
+		- Transitions between gaits will likely be tricky
+	- Positions of feet on ground relative to each other should be maintained throughout step
+	- ALl movements should be relative to the body
+
+- Maybe have some way to detect that the leg has bottomed out
+	- In terrain that cannot be mapped easily (e.g. grass,) this may be necessary in order to walk properly
+	- Pressure sensor
+		+ Cannot be set off by surfaces that cannot support the robot
+		+ Allows the robot to probe the ground to avoid ground incapable of supporting it
+		- May be difficult to program correctly and incorporate into the leg
+	- Proximity sensor
+		+ Should be pretty easy to program
+		- Would be set off by things like leaves and trip up the robot's movement
+	- None
+		+ Easiest to program
+		- Significantly reduced ability to walk on uncertain terrain
+	- Gyroscopically stabilized
+		Put all three legs at the same height, then adjust the heights until the robot is level
+		+ No need for additional sensors
+		+ Likely the most reliable option
+		- May be slower than just walking without considering the terrain if it takes too long to stabilize
+
+- Use simulation software to write unit tests for the robot
+	- Test ability of legs to trace specific paths with the feet and other joints
+	- Given only forward input, there should be minimal lateral movement while walking and the destination should be exactly forward of the starting point.
+		- Similar tests for all other kinds of input
+	- Given varying magnitudes of forward input for the same amount of time, the larger magnitude should result in a larger distance travelled.
+		- Similar tests for all other kinds of input
+	- Test ability to pathfind over rough terrain
+	- Test ability to pathfind over unstable terrain
+	- Test ability to pathfind over narrow bridges
+	- Test ability to pathfind through narrow holes
+	- Test ability to climb ledges
+
+- Test and analyze multiple different gaits to determine most effective one. Include second-best as a fallback if for some reason the best one cannot be done
+	- Prediction: Most efficient gait will be wide and low with upper legs around the same height as body
+		- Allows for more distance to be covered by each step and should be relatively stable
+		- Lower the body to sacrifice speed for stability
+			- Good movement control code will be able to maintain stability on a higher gait, but may require acceleration smoothing for very high gaits.
+	- Look into deep learning/AI stuff for this, it could be a godsend
+		- May find a result that only works for the traing simulator and not reality though, so it may not be ideal.
+		- UPDATE: Unfortunately this seems to be too computationally expensive for an Arduino. There is potential here for a future project with a beefier controller though.
+	- Three main gaits for hexapods:
+		- Wave gait: 1 leg raised at a time. Slowest but most stable
+		- Ripple gait: 2 legs raised at a time. Faster but less stable than wave gait
+		- Tripod gait: 3 legs raised at a time. Fastest but least stable
+	- Switch between all 3 gaits depending on desired speed. When speed is not needed, select a more stable gait.
+		- Switching should be fast for a responsive feeling robot
+			- Should probably be able to switch mid-step to allow for fast accelleration
+				- e.g. if I press the analog stick forward fully, it will pass through a lower speed region and trigger a low speed step as soon as I push the stick a little
+					- Should be able to push the stick forward fully and immediately get full speed tripod gait
+
+- Write inverse kinematics code for the legs
+	- Given a path for the feet to take, move the joints in the leg to make it happen
+	- Allow for constraints on joints to enable pathfinding through tunnels (e.g. knee joint must not exceed X height or Y width)
+	- Have at least one or two fallback algorithms that function differently in case the main one fails to find a path
+		- If a path cannot be found notify the control software
+	- Since an Arduino is being used, use geometric inverse kinematic equations. If upgrading to a beefier processor, look into matrix equations.
+	- Learn about Denavit-Hartenberg parameters
+
+- Simulate different configurations of leg length/position
+	- Legs have three segments and three ranges of motion
+	- Rotational movement (i.e. forward and back, towards/away from other legs)
+	- Lateral movement (i.e. towards/away from the centre of the robot)
+	- Vertical movement (i.e. up and down, towards/away from the ground)
+	- Find most efficient/stable configuration
+		- I am going to make a guess that, starting from the hip, the best layout will be very short, short, and long leg segments.
+
+- 3D model the body and legs
+	- Make them as light as possible while still being sturdy
+		- Use that civil engineering knowledge from the one course you took
+	- Include mounting points and wiring channels for all components
+		- Wiring channels should be openable to allow for replacement of parts without much disassembly
+			- Maybe a flap on a hinge, or under cover held on with screws
+	- Feet could be textured rubber domes to allow for good traction on many surfaces regardless of angle of leg
+
+- Determine hardware and sensors
+	- Battery
+		- Probably Li-Po, these are used for RC cars and drones and such
+	- Servo motors
+		- Look at RC car servos. Important traits are high power and minimal jitter.
+	- Microcontroller
+		- Arduino may not be enough, will not really be sure until the code is done
+	- Gyroscope
+		- Necessary for tilting the body or maintaining orientation during movement
+	- Compass
+		- Only necessary if a gyroscope can't maintain orientation. It's not ideal so I'd prefer not to use one if possible.
+	- Camera
+		- Mostly just for fun
+	- Controller
+		- Xbox controller would be ideal, but as far as I can tell there is no way to use one with an Arduino.
+			- If Arduino is used, will either have to build a controller or write software to translate xinput to an Arduino-legible format
+	- LIDAR
+		- Really anything that is capable of mapping the nearby terrain. Only has to be enough to plot a course for the legs, so like 2 feet range.
+			- Investigate more into terrain mapping

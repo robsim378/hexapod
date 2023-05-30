@@ -1,0 +1,44 @@
+INVERSE KINEMATICS
+- Move foot from point A to point B
+- Trace straight line with foot 
+- Trace a curve with the foot
+
+
+ROBOT MOVEMENT
+- Forward/backward movement
+	- No lateral or rotational movement of body
+- Lateral movement
+	- No forward or rotational movement of body
+- Rotational movement
+	- No forward or lateral movement of body
+- Forward + lateral movement
+	- No rotational movement of body
+	- Should move at same speed as either forward or lateral individually
+	- Direction vector should be sum of the input vectors
+- Forward + rotational movement
+	- No lateral movement of body
+	- Should move at the same speed as forward input
+	- Should rotate at the same speed as rotational input
+- Lateral + rotational movement
+	- Same requirements as forward + rotational movement, I will be shocked if that passes and this fails or vice-versa
+- Forward + lateral + rotational movement
+	- Should move at the same speed as either forward or lateral individually
+	- Direction vector should be the sum of the input vectors
+	- Should rotate at the same speed as rotational input
+- Higher input magnitude should result in faster movement
+	- Probably linear, but will need to experiment to see what feels right. A curve may allow for more precise movement at low speeds.
+
+
+GAIT
+- Wave gait should always have at least 5 legs on the ground
+- Ripple gait should always have at least 4 legs on the ground
+- Tripod gait should always have at least 3 legs on the ground
+- Should switch between gaits depending on speed
+	- High speed: Tripod gait
+	- Medium speed: Ripple gait
+	- Low speed: Wave gait
+	- Exact thresholds will have to be determined experimentally
+- Should be able to switch gaits in the middle of a step
+- Body should remain upright throughout steps
+	- Allow higher tolerances for this for faster gaits
+	- Exact tolerances will have to be determined experimentally
