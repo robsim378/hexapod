@@ -27,7 +27,8 @@ ROBOT MOVEMENT
 	- Should rotate at the same speed as rotational input
 - Higher input magnitude should result in faster movement
 	- Probably linear, but will need to experiment to see what feels right. A curve may allow for more precise movement at low speeds.
-
+- Should respond immediately to changing input direction and/or type
+	- Should not wait for step to complete
 
 GAIT
 - Wave gait should always have at least 5 legs on the ground

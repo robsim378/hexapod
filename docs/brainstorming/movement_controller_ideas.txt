@@ -1,0 +1,23 @@
+- Plot steps as a starting point and an ending point
+	- I believe a straight line between these is all that is needed
+	- Should be able to plot a step from any leg position
+
+- Purely forward/lateral movement involves moving all feet in the same direction and the same distance per step
+- Purely rotational movement involves maintaining the distance of all legs from the body and rotating the feet around the centre of the body
+- Simultaneous forward/lateral and rotational movement will involve a combination of the two.
+	- My prediction is that the endpoint of the step can be calculated by applying the function for calculating rotational movement onto the endpoint of calculating lateral movement
+		- i.e. first calculate step endpoint for forward/lateral movement, then do it again for rotational from the previous endpoint. That is the endpoint of the overall step.
+
+- Changing input direction, magnitude, or type should give an immediate effect
+	- Robot will most likely feel very sluggish if it waits until the end of its current step to change
+- Small changes in magnitude will be easy, just slow down the legs.
+	- Bigger changes will be trickier since the gait will have to change too.
+		- Maybe run the leg that has already started the step a bit slower than the legs being added with the new gait so that they land at the same time
+		- For slowing down, just slow down the legs during the current step but finish the step
+		- Positions of legs on ground will vary during different gaits, so the first couple steps after changing require special attention
+	- If magnitude changes to 0 there may be some extra work needed to make it feel right
+		- Need to be careful since this can occur in the middle of reversing a direction, so don't just stop immediately.
+- Changes in direction of input or type (i.e. adding rotational movement in the middle of a forward step) will be difficult
+	- Will probably require recalculating the endpoint
+		- Maybe begin from the current position of the foot
+
