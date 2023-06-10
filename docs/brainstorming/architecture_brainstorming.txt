@@ -1,0 +1,37 @@
+- Legs and movement controller should be decoupled
+- Maybe make legs a subsystem?
+	- Depends if the microprocessor used supports multithreading
+		- I dont think Arduino does, but a Raspberry Pi might
+
+
+Multiple layers of control:
+
+- Leg hardware controller (1 per leg)
+	- Takes three values as input and moves the servos in its leg to that position
+	- This will mostly be used to decouple the hardware controls from the rest of the software
+- Leg movement controller (1 per leg)
+	- Takes a destination and plots a route for the foot to take. 
+	- Handles inverse kinematics for the leg.
+	- Takes a travel time/arrival time to be used to control the speed of the leg
+		- e.g. if given a 5s travel time, the foot will move at a constant rate such that it arrives at its destination 5s after beginning movement
+		- Allows for coordination of leg movements by higher-level controllers
+		- Will need to implement some sensors (probably potentiometers) to ensure the leg is actually in the expected position (mostly for high speeds)
+		- Should report positions of legs to higher level controllers
+	- If a new movement order is recieved before the current one is finished, abandon the current one
+- Movement controller (1 per hexapod)
+	- Takes a direction and speed
+	- Determines what gait to use based on speed
+	- Determines where to place legs and how fast in order to move accordingly
+	- Determines which legs to start with
+		- i.e. check which leg is furthest behind in the given direction and begin the gait on that leg
+		- May actually require making a small first step if multiple legs are lagging behind in that direction. Testing required.
+	- Passes that information down to the leg movement controllers
+	- Can also take an X angle, Y angle, X translation, Y translation, and Z translation and move the body accordingly
+- Input controller (1 per hexapod)
+	- Takes a controller (e.g. gamepad) input and converts it to a format the movement controller can use
+	- Passes that information along to the movement controller
+	- Movement direction and speed should come from a pair of joysticks (left stick for lateral movement, right for rotation, magnitude from stick angle)
+	- Angling the body should come from a gyroscope, possibly with optional joystick movement too
+	- Body translation could maybe come from another joystick? I'm not really sure about this one
+
+	
