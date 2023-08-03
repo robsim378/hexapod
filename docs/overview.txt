@@ -1,0 +1,32 @@
+BACKGROUND
+
+The goal of this project is to design and build a hexapod robot. Hexapods are mobile robots with 6 legs, the greatest advantage of which is their static stability. This is the ability of a robot to remain completely stable at all points in their stride.
+
+Hexapods have three main gaits: wave gait, ripple gait, and tripod gait. Each of these gaits is faster than the last at the expense of keeping fewer feet on the ground and potentially reducing stability. In wave gait, only one leg is raised off the ground at any given time. This means that 5 legs are used to move the robot's body and keep it stable, but it must take 6 steps before each leg has advanced. In contrast, Ripple gait raises 2 legs at a time, taking 3 steps to advance each leg, while tripod gait raises 3 legs and only takes 2 steps to advance them all.
+
+There are two forms of movement that this hexapod will be capable of, lateral and rotational. In lateral movement, the hexapod will move along the floor in a chosen direction relative to the front of the robot. In rotational movement, the hexapod will rotate about its center. It should be capable of simultaneous rotational and lateral movement. The goal is to have the movement be smooth, keeping the body moving at the same rate regardless of the current state of the legs.
+
+
+
+ARCHITECTURE
+
+The hexapod will have a few core modules, represented by ROS2 nodes. These are as follows:
+
+Input controller: Handles taking input from an input device (e.g. a gamepad with the left stick pushed diagonally  60% of the way) and passes it to the main movement controller. There will only be one instance of this.
+
+Main movement controller: Takes input from the input controller (e.g. move at 60% speed with a bearing of 45 degrees) and determines which legs to move and where they should move to. This is then passed to the leg movement controllers. There will only be one instance of this.
+
+Leg movement controller: Takes input from the main movement controller (e.g. move leg to position x) and plots a route to move the leg along. Each leg will have its own instance of this.
+
+Leg hardware controller: Handles controlling the hardware in the legs (servos, possibly position sensors to detect problems). Each leg will have its own instance of this.
+
+
+
+FUTURE GOALS
+
+Once the hexapod is complete, there are many possibilities for additional projects using it as a base. Here are a few possibilities:
+
+LIDAR: Use of LIDAR to map terrain, allowing more precise positioning of legs on rough terrain. This is probably the most important one, as without this the hexapod is beaten on all fronts by a regular wheeled robot. Being able to step in precise spots and cross bad terrain is the main benefit of a hexapod.
+
+Autonomous navigation: If a LIDAR is being mounted anyways, a project to deal with pathfinding and autonomous navigation would be an excellent idea if for nothing else than a learning experience.
+
