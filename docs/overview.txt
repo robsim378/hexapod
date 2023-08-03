@@ -22,6 +22,26 @@ Leg hardware controller: Handles controlling the hardware in the legs (servos, p
 
 
 
+HARDWARE
+
+The hexapod, being a robot, will have a variety of hardware components. The following is a list of components that are expected to be required:
+
+Battery: Probably a Li-Po battery of the type used by RC cars and drones
+
+Servo motors: These are the most important component, so high-performance servos are a must. Important traits are fast acceleration and smooth motion. The kind used for RC cars are a solid starting point, but may be more optimized for high top speeds.
+
+Microcontroller: The microcontroller will be chosen after the core of the software is complete. An Arduino may be enough for the base hexapod, but some of the expansions in the FUTURE GOALS section may be too much for it to handle. More investigation into this will be done once the software is ready.
+
+Gyroscope: Necessary for tilting the body or maintaining the correct orientation during movement.
+
+Position sensors: These can be placed on the joints in line with the servos to detect discrepancies between the expected and actual positions of the legs. Potentiometers are likely a good fit, but the microcontroller may not have enough analog pins to make use of this many.
+
+LIDAR: See details in FUTURE GOALS
+
+Controller: A generic gamepad (xinput?) would be ideal as it is a very intuitive control interface. Difficulties may arise from interfacing with the microcontroller, so a custom one may have to be built.
+
+
+
 FUTURE GOALS
 
 Once the hexapod is complete, there are many possibilities for additional projects using it as a base. Here are a few possibilities:
