@@ -30,6 +30,8 @@ Battery: Probably a Li-Po battery of the type used by RC cars and drones
 
 Servo motors: These are the most important component, so high-performance servos are a must. Important traits are fast acceleration and smooth motion. The kind used for RC cars are a solid starting point, but may be more optimized for high top speeds.
 
+Legs and body: The legs and body will be 3D printed. Designing them will be a part of this project.
+
 Microcontroller: The microcontroller will be chosen after the core of the software is complete. An Arduino may be enough for the base hexapod, but some of the expansions in the FUTURE GOALS section may be too much for it to handle. More investigation into this will be done once the software is ready.
 
 Gyroscope: Necessary for tilting the body or maintaining the correct orientation during movement.
