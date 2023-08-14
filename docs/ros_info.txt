@@ -1,0 +1,15 @@
+NODES
+
+LegMovementController
+	location:
+		/src/hexapod_nodes/src/leg_movement_controller.cpp
+	actions:
+		/move_leg [/hexapod_interfaces/action/LegMovementCommand]
+
+
+
+INTERFACES
+
+LegMovementCommand [action]
+	location:
+		/src/hexapod_interfaces/action/LegMovementCommand

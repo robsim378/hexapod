@@ -16,9 +16,20 @@ Input controller: Handles taking input from an input device (e.g. a gamepad with
 
 Main movement controller: Takes input from the input controller (e.g. move at 60% speed with a bearing of 45 degrees) and determines which legs to move and where they should move to. This is then passed to the leg movement controllers. There will only be one instance of this.
 
-Leg movement controller: Takes input from the main movement controller (e.g. move leg to position x) and plots a route to move the leg along. Each leg will have its own instance of this.
+Leg motion controller: Takes input from the main movement controller (e.g. move leg to position x) and plots a route to move the leg along. Each leg will have its own instance of this.
 
-Leg hardware controller: Handles controlling the hardware in the legs (servos, possibly position sensors to detect problems). Each leg will have its own instance of this.
+Leg servo controller: Handles controlling the servos in the legs. Each leg will have its own instance of this.
+
+Leg position reporter: Reports the positions of a leg to all other modules that require it. Each leg will have its own instance.
+
+
+
+LEG POSITIONS
+
+Leg positions within the controllers will be abstracted to just the position of the feet. These will be defined by three components:
+	1. Angle (with 0 being the default position of the leg)
+	2. Horizontal position (with 0 being the closest to the body the leg can be)
+	3. Vertical position (with 0 being the height of the bottom of the body)
 
 
 
