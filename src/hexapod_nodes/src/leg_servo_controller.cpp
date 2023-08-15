@@ -18,9 +18,25 @@ class LegServoController : public rclcpp::Node
         LegServoController()
         : Node("leg_servo_controller")
         {
-            // Subscribe to the topic on which to receive commands.
-            subscription_ = this->create_subscription<hexapod_interfaces::msg::LegPosition>(
-                "placeholder_topic_name", 10, std::bind(&LegServoController::topic_callback, this, _1));
+            // Parameter used to identify which leg this controller is responsible for. Set to an invalid value by default.
+            this->declare_parameter("leg_id", -1);
+
+            try 
+            {
+                // Check if the leg_id has been set. If not, log an error and throw an exception.
+                if(this->get_parameter("leg_id").as_int() < 0) 
+                {
+                    throw std::invalid_argument("Leg movement controller configuration invalid: No leg_id set.");
+                }
+                // Subscribe to the topic on which to receive commands.
+                subscription_ = this->create_subscription<hexapod_interfaces::msg::LegPosition>(
+                    "placeholder_topic_name", 10, std::bind(&LegServoController::topic_callback, this, _1));
+            }
+            
+            catch(int e)
+            {
+                RCLCPP_ERROR(this->get_logger(), "Leg movement controller configuration invalid: No leg_id set.");
+            }
         }
 
     private:

@@ -35,7 +35,7 @@ public:
       // Check if the leg_id has been set. If not, log an error and throw an exception.
       if(this->get_parameter("leg_id").as_int() < 0) 
       {
-        throw std::invalid_argument("leg_id not set");
+        throw std::invalid_argument("Leg movement controller configuration invalid: No leg_id set.");
       }
 
       // Define the action server for movement commands
