@@ -11,16 +11,23 @@ find_package(hexapod_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 
+# Configuration for the leg movement controller
 add_executable(leg_movement_controller src/leg_movement_controller.cpp)
 ament_target_dependencies(leg_movement_controller
   "rclcpp"
   "rclcpp_action"
   "hexapod_interfaces")
 
+# Configuration for the leg servo controller
 add_executable(leg_servo_controller src/leg_servo_controller.cpp)
 ament_target_dependencies(leg_servo_controller
   "rclcpp"
   "hexapod_interfaces")
+
+install(TARGETS
+  leg_movement_controller
+  leg_servo_controller
+  DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

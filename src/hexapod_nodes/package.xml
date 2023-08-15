@@ -3,7 +3,7 @@
 <package format="3">
   <name>hexapod_nodes</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>ROS2 nodes for the hexapod</description>
   <maintainer email="robsim378@gmail.com">robert</maintainer>
   <license>TODO: License declaration</license>
 
