@@ -1,6 +1,11 @@
-BACKGROUND
+OVERVIEW
 
 The goal of this project is to design and build a hexapod robot. Hexapods are mobile robots with 6 legs, the greatest advantage of which is their static stability. This is the ability of a robot to remain completely stable at all points in their stride.
+
+This project is made using ROS2 Humble and coded primarily in C++.
+
+
+BACKGROUND
 
 Hexapods have three main gaits: wave gait, ripple gait, and tripod gait. Each of these gaits is faster than the last at the expense of keeping fewer feet on the ground and potentially reducing stability. In wave gait, only one leg is raised off the ground at any given time. This means that 5 legs are used to move the robot's body and keep it stable, but it must take 6 steps before each leg has advanced. In contrast, Ripple gait raises 2 legs at a time, taking 3 steps to advance each leg, while tripod gait raises 3 legs and only takes 2 steps to advance them all.
 
