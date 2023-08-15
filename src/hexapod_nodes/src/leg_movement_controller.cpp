@@ -5,10 +5,7 @@
 #include "hexapod_interfaces/action/leg_movement_command.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
-#include "rclcpp_components/register_node_macro.hpp"
 
-namespace hexapod_nodes
-{
 class LegMovementController : public rclcpp::Node
 {
 public:
@@ -72,6 +69,14 @@ private:
   }
 };  // class LegMovementController 
 
-}  // namespace hexapod_nodes 
+int main(int argc, char * argv[])
+{
+  rclcpp::init(argc, argv);
 
-RCLCPP_COMPONENTS_REGISTER_NODE(hexapod_nodes::LegMovementController)
+  auto leg_movement_controller = std::make_shared<LegMovementController>();
+
+  rclcpp::spin(leg_movement_controller);
+
+  rclcpp::shutdown();
+  return 0;
+}
