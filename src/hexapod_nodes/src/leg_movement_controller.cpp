@@ -9,7 +9,8 @@
 /*
 This node is responsible for handling the pathfinding and control of an individual leg.
 It receives input in the form of a target destination for the foot, and it calculates a 
-path and sends commands to the corresponding servo controller to move.
+path and sends commands to the corresponding servo controller to move. This is the node 
+that handles inverse kinematics.
 */
 class LegMovementController : public rclcpp::Node
 {
@@ -23,13 +24,33 @@ public:
   {
     using namespace std::placeholders;
 
-    // Define the action server for movement commands
-    this->action_server_ = rclcpp_action::create_server<Target>(
-      this,
-      "move_leg",
-      std::bind(&LegMovementController::handle_goal, this, _1, _2),
-      std::bind(&LegMovementController::handle_cancel, this, _1),
-      std::bind(&LegMovementController::handle_accepted, this, _1));
+    // Parameter used to set the frequency with which commands are sent to the servo controller.
+    this->declare_parameter("control_frequency", 1);
+
+    // Parameter used to identify which leg this controller is used for. Set to an invalid value by default.
+    this->declare_parameter("leg_id", -1);
+
+    try
+    {
+      // Check if the leg_id has been set. If not, log an error and throw an exception.
+      if(this->get_parameter("leg_id").as_int() < 0) 
+      {
+        throw std::invalid_argument("leg_id not set");
+      }
+
+      // Define the action server for movement commands
+      this->action_server_ = rclcpp_action::create_server<Target>(
+        this,
+        "move_leg",
+        std::bind(&LegMovementController::handle_goal, this, _1, _2),
+        std::bind(&LegMovementController::handle_cancel, this, _1),
+        std::bind(&LegMovementController::handle_accepted, this, _1));
+    }
+    catch(int e)
+    {
+        RCLCPP_ERROR(this->get_logger(), "Leg movement controller configuration invalid: No leg_id set.");
+    }
+    
   }
 
 private:
@@ -40,7 +61,7 @@ private:
     const rclcpp_action::GoalUUID & uuid,
     std::shared_ptr<const Target::Goal> goal)
   {
-    RCLCPP_INFO(this->get_logger(), "Received movement request:\nangle: %f\nh_position: %f\nv_position: %f\n", goal->angle, goal->h_position, goal->v_position);
+    RCLCPP_INFO(this->get_logger(), "Received movement request for leg %li:\nangle: %f\nh_position: %f\nv_position: %f\n", this->get_parameter("leg_id").as_int(), goal->angle, goal->h_position, goal->v_position);
     (void)uuid;
     return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
   }
