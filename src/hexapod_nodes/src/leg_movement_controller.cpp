@@ -1,8 +1,10 @@
 #include <functional>
 #include <memory>
 #include <thread>
+#include <chrono>
 
 #include "hexapod_interfaces/action/leg_movement_command.hpp"
+#include "hexapod_interfaces/msg/leg_position.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 
@@ -38,6 +40,12 @@ public:
         throw std::invalid_argument("Leg movement controller configuration invalid: No leg_id set.");
       }
 
+      // Define the publisher for sending commands to the servo controller
+      publisher_ = this->create_publisher<hexapod_interfaces::msg::LegPosition>(
+        "leg_" + std::to_string(this->get_parameter("leg_id").as_int()) + "_target_position", 10);
+      timer_ = this->create_wall_timer(
+        std::chrono::seconds((int)(1.0 / this->get_parameter("control_frequency").as_int())), std::bind(&LegMovementController::timer_callback, this));
+
       // Define the action server for movement commands
       this->action_server_ = rclcpp_action::create_server<Target>(
         this,
@@ -54,6 +62,19 @@ public:
   }
 
 private:
+
+  void timer_callback()
+  {
+    auto command = hexapod_interfaces::msg::LegPosition();
+    command.joint1 = 45.0;
+    command.joint2 = 50.0;
+    command.joint3 = 60.0;
+    RCLCPP_INFO(this->get_logger(), "Publishing to leg %li:\njoint1: %lf\njoint2: %lf\njoint3: %lf", this->get_parameter("leg_id").as_int(), command.joint1, command.joint2, command.joint3);
+    publisher_->publish(command);
+  }
+  rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::Publisher<hexapod_interfaces::msg::LegPosition>::SharedPtr publisher_;
+
   rclcpp_action::Server<Target>::SharedPtr action_server_;
 
   // The code to execute when a goal is received

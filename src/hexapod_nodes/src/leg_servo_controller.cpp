@@ -30,7 +30,7 @@ class LegServoController : public rclcpp::Node
                 }
                 // Subscribe to the topic on which to receive commands.
                 subscription_ = this->create_subscription<hexapod_interfaces::msg::LegPosition>(
-                    "placeholder_topic_name", 10, std::bind(&LegServoController::topic_callback, this, _1));
+                    "leg_" + std::to_string(this->get_parameter("leg_id").as_int()) + "_target_position", 10, std::bind(&LegServoController::topic_callback, this, _1));
             }
             
             catch(int e)
@@ -43,7 +43,7 @@ class LegServoController : public rclcpp::Node
         // Code to execute when receiving a command.
         void topic_callback(const hexapod_interfaces::msg::LegPosition & msg) const
         {
-            RCLCPP_INFO(this->get_logger(), "Recieved movement command:\njoint1: %f\njoint2: %f\njoint3: %f", msg.joint1, msg.joint2, msg.joint3);
+            RCLCPP_INFO(this->get_logger(), "Recieved movement command for leg %li:\njoint1: %f\njoint2: %f\njoint3: %f", this->get_parameter("leg_id").as_int(), msg.joint1, msg.joint2, msg.joint3);
         }
         rclcpp::Subscription<hexapod_interfaces::msg::LegPosition>::SharedPtr subscription_;
 };
