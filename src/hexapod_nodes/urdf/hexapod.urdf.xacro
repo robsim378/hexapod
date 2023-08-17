@@ -1,1 +1,19 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hexapod">
 
+<xacro:property name="segment_1_radius" value="0.2"/>
+<xacro:property name="segment_1_length" value="1"/>
+
+<xacro:macro name="leg" params="leg_id">
+    <link name="leg+${leg_id}_segment_1">
+        <visual>
+            <geometry>
+                <cylinder length="${segment_1_length}" radius="${segment_1_radius}"/>
+            </geometry>
+        </visual>
+    </link>
+</xacro:macro>
+
+<xacro:leg leg_id="1"/>
+
+</robot>

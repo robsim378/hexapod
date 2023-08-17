@@ -31,6 +31,8 @@ install(TARGETS
 
 install(DIRECTORY
   launch
+  urdf
+  rviz
   DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
