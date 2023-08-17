@@ -1,19 +1,63 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hexapod">
+    <xacro:property name="body_radius" value="1"/>
+    <xacro:property name="segment_1_radius" value="0.2"/>
+    <xacro:property name="segment_1_length" value="1"/>
 
-<xacro:property name="segment_1_radius" value="0.2"/>
-<xacro:property name="segment_1_length" value="1"/>
 
-<xacro:macro name="leg" params="leg_id">
-    <link name="leg+${leg_id}_segment_1">
+    <material name="white">
+        <color rgba="1 1 1 1"/>
+    </material>
+
+    <xacro:macro name="default_inertial" params="mass">
+        <inertial>
+            <mass value="${mass}"/>
+            <inertia ixx="1e-3" ixy="0.0" ixz="0.0" iyy="1e-3" iyz="0.0" izz="1e-3"/>
+        </inertial>
+    </xacro:macro>
+
+    <link name="body">
         <visual>
             <geometry>
-                <cylinder length="${segment_1_length}" radius="${segment_1_radius}"/>
+                <sphere radius="${body_radius}"/>
             </geometry>
+            <material name="white"/>
         </visual>
+        <collision>
+            <geometry>
+                <sphere radius="${body_radius}"/>
+            </geometry>
+        </collision>
+        <!--
+        <xacro:default_inertial mass="10"/>
+        -->
     </link>
-</xacro:macro>
 
-<xacro:leg leg_id="1"/>
+    <xacro:macro name="leg" params="leg_id">
+        <link name="leg_${leg_id}_segment_1">
+            <visual>
+                <geometry>
+                    <cylinder length="${segment_1_length}" radius="${segment_1_radius}"/>
+                </geometry>
+                <material name="white"/>
+            </visual>
+            <collision>
+                <geometry>
+                    <cylinder length="${segment_1_length}" radius="${segment_1_radius}"/>
+                </geometry>
+                <origin xyz = "0 0 -${segment_1_length/2}" rpy="0 ${pi/2} 0"/>
+            </collision>
+            <xacro:default_inertial mass="10"/>
+        </link>
 
+        <joint name="$body_segment_1_joint" type="revolute">
+            <axis xzy="0 0 1"/>
+            <limit effort="1000.0" lower="0.0" upper="0.548" velocity="0.5"/>
+            <parent link="body"/>
+            <child link="leg_${leg_id}_segment_1"/>
+            <origin xyz="0 0 0"/>
+        </joint>
+    </xacro:macro>
+
+    <xacro:leg leg_id="1"/>
 </robot>
