@@ -3,7 +3,7 @@ from ament_index_python.packages import get_package_share_path
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition, UnlessCondition
-from launch.substitutions import Command, LaunchConfiguration
+from launch.substitutions import Command, LaunchConfiguration, PythonExpression
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -21,6 +21,9 @@ def generate_launch_description():
     rviz_config = DeclareLaunchArgument(name='rvizconfig', default_value=str(default_rviz_config_path), 
                                         description='Path to RVIZ config file')
 
+    use_rviz = LaunchConfiguration('rviz')
+    use_gui = LaunchConfiguration('gui')
+
     robot_description = ParameterValue(Command(['xacro ', str(model_path)]), value_type=str)
 
     # RVIZ nodes
@@ -35,13 +38,18 @@ def generate_launch_description():
     joint_state_publisher_node = Node(
         package='joint_state_publisher',
         executable='joint_state_publisher',
-        condition=UnlessCondition(LaunchConfiguration('gui') or not LaunchConfiguration('rviz'))
+        # There is no proper support for multiple launch conditions, but this workaround addresses that.
+        condition=IfCondition(
+            PythonExpression(["not '", use_gui, "' and not '", use_rviz, "'"])
+        )
     )
 
     joint_state_publisher_gui_node = Node(
         package='joint_state_publisher_gui',
         executable='joint_state_publisher_gui',
-        condition=IfCondition(LaunchConfiguration('gui') and LaunchConfiguration('rviz'))
+        condition=IfCondition(
+            PythonExpression(["'", use_gui, "' and not '", use_rviz, "'"])
+        )
     )
 
     rviz_node = Node(
