@@ -1,8 +1,0 @@
-<launch>
-    <node pkg="hexapod_nodes" exec="leg_movement_controller" name="leg_movement_controller" namespace="leg_1">
-        <param name="leg_id" value="1"/>
-    </node>
-    <node pkg="hexapod_nodes" exec="leg_servo_controller" name="leg_servo_controller" namespace="leg_1">
-        <param name="leg_id" value="1"/>
-    </node>
-</launch>
