@@ -30,26 +30,17 @@ def generate_launch_description():
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
+        name='robot_state_publisher',
         parameters=[{
             'robot_description': robot_description
         }]
     )
     
-    joint_state_publisher_node = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        # There is no proper support for multiple launch conditions, but this workaround addresses that.
-        condition=IfCondition(
-            PythonExpression(["not '", use_gui, "' and not '", use_rviz, "'"])
-        )
-    )
-
     joint_state_publisher_gui_node = Node(
         package='joint_state_publisher_gui',
         executable='joint_state_publisher_gui',
-        condition=IfCondition(
-            PythonExpression(["'", use_gui, "' and not '", use_rviz, "'"])
-        )
+        name='joint_state_publisher_gui',
+        condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
     rviz_node = Node(
@@ -84,14 +75,13 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        joint_gui_arg,
+        # joint_gui_arg,
         rviz_arg,
         rviz_config,
-        joint_state_publisher_node,
         joint_state_publisher_gui_node,
         robot_state_publisher_node,
         rviz_node,
 
-        leg1_movement_controller_node,
-        leg1_servo_controller_node
+        # leg1_movement_controller_node,
+        # leg1_servo_controller_node
     ])

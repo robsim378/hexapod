@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hexapod">
     <xacro:property name="body_radius" value="1"/>
     <xacro:property name="segment_1_radius" value="0.2"/>
-    <xacro:property name="segment_1_length" value="1"/>
+    <xacro:property name="segment_1_length" value="3"/>
 
 
     <material name="white">
@@ -45,12 +45,12 @@
                 <geometry>
                     <cylinder length="${segment_1_length}" radius="${segment_1_radius}"/>
                 </geometry>
-                <origin xyz = "0 0 -${segment_1_length/2}" rpy="0 ${pi/2} 0"/>
+                <origin xyz = "0 0 -${segment_1_length/2}" rpy="0 1.5705 0"/>
             </collision>
             <xacro:default_inertial mass="10"/>
         </link>
 
-        <joint name="$body_segment_1_joint" type="revolute">
+        <joint name="$leg_${leg_id}_joint_1" type="revolute">
             <axis xzy="0 0 1"/>
             <limit effort="1000.0" lower="0.0" upper="0.548" velocity="0.5"/>
             <parent link="body"/>
