@@ -91,7 +91,7 @@
             <parent link="leg_${leg_id}_segment_0"/>
             <child link="leg_${leg_id}_segment_1"/>
             <limit effort="1000.0" lower="-0.5" upper="0.5" velocity="0.5"/>
-            <origin xyz="0 0 ${segment_1_length}"/>
+            <origin xyz="0 0 ${segment_1_length/2}"/>
         </joint>
 
         <!-- Third leg segment -->
@@ -117,7 +117,7 @@
             <parent link="leg_${leg_id}_segment_1"/>
             <child link="leg_${leg_id}_segment_2"/>
             <limit effort="1000.0" lower="-0.5" upper="0.5" velocity="0.5"/>
-            <origin xyz="0 0 ${segment_2_length}"/>
+            <origin xyz="0 0 ${segment_2_length/2}"/>
         </joint>
 
     </xacro:macro>
