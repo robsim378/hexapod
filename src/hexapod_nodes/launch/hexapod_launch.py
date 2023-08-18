@@ -19,13 +19,17 @@ def generate_launch_description():
     rviz_config = DeclareLaunchArgument(name='rvizconfig', default_value=str(default_rviz_config_path), 
                                         description='Path to RVIZ config file')
 
-    robot_description = ParameterValue(Command(['xacro ', str(model_path)]), value_type=str)
+    model_arg = DeclareLaunchArgument(name='model', default_value=str(model_path),
+                                        description="Path to URDF model")
+
+    robot_description = ParameterValue(Command(['xacro ', LaunchConfiguration('model')]),
+                                        value_type=str)
 
     # RVIZ nodes
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        name='robot_state_publisher',
+        # name='robot_state_publisher',
         parameters=[{
             'robot_description': robot_description
         }]
@@ -35,7 +39,7 @@ def generate_launch_description():
         package='joint_state_publisher_gui',
         executable='joint_state_publisher_gui',
         name='joint_state_publisher_gui',
-        condition=IfCondition(LaunchConfiguration('rviz'))
+        # condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
     rviz_node = Node(
@@ -50,20 +54,20 @@ def generate_launch_description():
 
 
     # LEG 1 nodes
-    leg1_movement_controller_node = Node(
+    leg_1_movement_controller_node = Node(
         package='hexapod_nodes',
         namespace='leg_1',
         executable='leg_movement_controller',
-        name='leg_movement_controller',
+        name='leg_1_movement_controller',
         parameters=[{
             "leg_id": 1
         }]
     )
-    leg1_servo_controller_node = Node(
+    leg_1_servo_controller_node = Node(
         package='hexapod_nodes',
         namespace='leg_1',
         executable='leg_servo_controller',
-        name='leg_servo_controller',
+        name='leg_1_servo_controller',
         parameters=[{
             "leg_id": 1
         }]
@@ -72,10 +76,11 @@ def generate_launch_description():
     return LaunchDescription([
         rviz_arg,
         rviz_config,
+        model_arg,
         joint_state_publisher_gui_node,
         robot_state_publisher_node,
         rviz_node,
 
-        # leg1_movement_controller_node,
-        # leg1_servo_controller_node
+        # leg_1_movement_controller_node,
+        # leg_1_servo_controller_node
     ])

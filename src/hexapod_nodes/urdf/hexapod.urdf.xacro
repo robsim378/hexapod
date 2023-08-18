@@ -1,23 +1,30 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hexapod">
+    <!-- Constants used throughout the model -->
     <xacro:property name="body_radius" value="0.5"/>
     <xacro:property name="leg_radius" value="0.2"/>
     <xacro:property name="segment_0_length" value="0.5"/>
     <xacro:property name="segment_1_length" value="1"/>
     <xacro:property name="segment_2_length" value="2"/>
 
-
+    <!-- Some colors used throughout the model -->
     <material name="white">
         <color rgba="1 1 1 1"/>
     </material>
+    
+    <material name="red">
+        <color rgba="1 0 0 1"/>
+    </material>
 
-    <xacro:macro name="default_inertial" params="mass">
-        <inertial>
-            <mass value="${mass}"/>
-            <inertia ixx="1e-3" ixy="0.0" ixz="0.0" iyy="1e-3" iyz="0.0" izz="1e-3"/>
-        </inertial>
-    </xacro:macro>
+    <material name="green">
+        <color rgba="0 1 0 1"/>
+    </material>
+    
+    <material name="blue">
+        <color rgba="0 0 1 1"/>
+    </material>
 
+    <!-- The main body of the robot -->
     <link name="body">
         <visual>
             <geometry>
@@ -30,96 +37,89 @@
                 <sphere radius="${body_radius}"/>
             </geometry>
         </collision>
-        <!--
-        <xacro:default_inertial mass="10"/>
-        -->
     </link>
 
-    <!-- Definition of an individual leg of the robot -->
+    <!-- Macro used to generate legs -->
     <xacro:macro name="leg" params="leg_id">
-        <!-- First segment -->
+        <!-- First leg segment -->
         <link name="leg_${leg_id}_segment_0">
             <visual>
                 <geometry>
                     <cylinder length="${segment_0_length}" radius="${leg_radius}"/>
                 </geometry>
+                <material name="blue"/>
                 <origin xyz="0 0 ${segment_0_length/2}"/>
-                <material name="white"/>
             </visual>
             <collision>
                 <geometry>
                     <cylinder length="${segment_0_length}" radius="${leg_radius}"/>
                 </geometry>
-                <origin xyz="0 0 ${segment_0_length/2}"/> 
+                <origin xyz="0 0 ${segment_0_length/2}"/>
             </collision>
-            <xacro:default_inertial mass="10"/>
         </link>
 
-        <!-- Joint connecting body to leg -->
-        <joint name="$leg_${leg_id}_joint_0" type="fixed">
-            <!-- <axis xzy="0 0 1"/> -->
-            <!-- <limit effort="1000.0" lower="0.0" upper="0.548" velocity="0.5"/> -->
+        <!-- Joint connecting body to first leg segment -->
+        <joint name="body_to_leg_${leg_id}_segment_0" type="revolute">
             <parent link="body"/>
             <child link="leg_${leg_id}_segment_0"/>
-            <!-- Places legs with the correct position and rotation based on their ID -->
+            <axis xyz="1 0 0"/>
+            <limit effort="1000.0" lower="-0.5" upper="0.5" velocity="0.5"/>
+            <!-- Determines the position and orientation of the leg based on its ID -->
             <origin xyz="${body_radius*sin(leg_id*pi/3)} ${body_radius*cos(leg_id*pi/3)} 0" rpy="0 ${pi/2} ${pi/2-leg_id*pi/3}"/>
         </joint>
-
-        <!-- Second segment -->
+    
+        <!-- Second leg segment -->
         <link name="leg_${leg_id}_segment_1">
             <visual>
                 <geometry>
                     <cylinder length="${segment_1_length}" radius="${leg_radius}"/>
                 </geometry>
+                <material name="red"/>
                 <origin xyz="0 0 ${segment_1_length/2}"/>
-                <material name="white"/>
             </visual>
             <collision>
                 <geometry>
                     <cylinder length="${segment_1_length}" radius="${leg_radius}"/>
                 </geometry>
-                <origin xyz="0 0 ${segment_1_length/2}"/> 
+                <origin xyz="0 0 ${segment_1_length/2}"/>
             </collision>
-            <xacro:default_inertial mass="10"/>
         </link>
 
-        <!-- Joint connecting first and second segments -->
-        <joint name="$leg_${leg_id}_joint_1" type="fixed">
-            <!-- <axis xzy="0 0 1"/> -->
-            <!-- <limit effort="1000.0" lower="0.0" upper="0.548" velocity="0.5"/> -->
+        <!-- Joint connecting first and second leg segments -->
+        <joint name="leg_${leg_id}_segment_0_to_segment_1" type="revolute">
+            <axis xyz="0 1 0"/>
             <parent link="leg_${leg_id}_segment_0"/>
             <child link="leg_${leg_id}_segment_1"/>
-            <origin xyz="0 0 ${segment_0_length}" rpy="0 0 0"/>
+            <limit effort="1000.0" lower="-0.5" upper="0.5" velocity="0.5"/>
+            <origin xyz="0 0 ${segment_1_length}"/>
         </joint>
 
-        <!-- Third segment -->
+        <!-- Third leg segment -->
         <link name="leg_${leg_id}_segment_2">
             <visual>
                 <geometry>
                     <cylinder length="${segment_2_length}" radius="${leg_radius}"/>
                 </geometry>
+                <material name="green"/>
                 <origin xyz="0 0 ${segment_2_length/2}"/>
-                <material name="white"/>
             </visual>
             <collision>
                 <geometry>
                     <cylinder length="${segment_2_length}" radius="${leg_radius}"/>
                 </geometry>
-                <origin xyz="0 0 ${segment_2_length/2}"/> 
+                <origin xyz="0 0 ${segment_2_length/2}"/>
             </collision>
-            <xacro:default_inertial mass="10"/>
         </link>
 
-        <!-- Joint connecting second and third segments -->
-        <joint name="$leg_${leg_id}_joint_2" type="fixed">
-            <!-- <axis xzy="0 0 1"/> -->
-            <!-- <limit effort="1000.0" lower="0.0" upper="0.548" velocity="0.5"/> -->
+        <!-- Joint connecting second and third leg segments -->
+        <joint name="leg_${leg_id}_segment_1_to_segment_2" type="revolute">
+            <axis xyz="0 1 0"/>
             <parent link="leg_${leg_id}_segment_1"/>
             <child link="leg_${leg_id}_segment_2"/>
-            <origin xyz="0 0 ${segment_1_length}" rpy="0 0 0"/>
+            <limit effort="1000.0" lower="-0.5" upper="0.5" velocity="0.5"/>
+            <origin xyz="0 0 ${segment_2_length}"/>
         </joint>
 
-        
     </xacro:macro>
 
     <xacro:leg leg_id="0"/>
