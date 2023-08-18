@@ -14,15 +14,10 @@ def generate_launch_description():
     default_rviz_config_path = hexapod_nodes_path / 'rviz/urdf.rviz'
 
     # Launch args
-    joint_gui_arg = DeclareLaunchArgument(name='gui', default_value='false', choices=['true', 'false'], 
-                                        description='Flag to enable joint_state_publisher_gui')
     rviz_arg = DeclareLaunchArgument(name='rviz', default_value='true', choices=['true', 'false'], 
                                         description='Flag to enable rviz')
     rviz_config = DeclareLaunchArgument(name='rvizconfig', default_value=str(default_rviz_config_path), 
                                         description='Path to RVIZ config file')
-
-    use_rviz = LaunchConfiguration('rviz')
-    use_gui = LaunchConfiguration('gui')
 
     robot_description = ParameterValue(Command(['xacro ', str(model_path)]), value_type=str)
 
@@ -75,7 +70,6 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        # joint_gui_arg,
         rviz_arg,
         rviz_config,
         joint_state_publisher_gui_node,
