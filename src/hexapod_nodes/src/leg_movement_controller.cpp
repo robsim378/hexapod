@@ -42,7 +42,7 @@ public:
 
       // Define the publisher for sending commands to the servo controller
       publisher_ = this->create_publisher<hexapod_interfaces::msg::LegPosition>(
-        "leg_" + std::to_string(this->get_parameter("leg_id").as_int()) + "_target_position", 10);
+        "leg_target_position", 10);
       timer_ = this->create_wall_timer(
         std::chrono::seconds((int)(1.0 / this->get_parameter("control_frequency").as_int())), std::bind(&LegMovementController::timer_callback, this));
 

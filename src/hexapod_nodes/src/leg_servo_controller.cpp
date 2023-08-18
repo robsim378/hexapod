@@ -30,7 +30,7 @@ class LegServoController : public rclcpp::Node
                 }
                 // Subscribe to the topic on which to receive commands.
                 subscription_ = this->create_subscription<hexapod_interfaces::msg::LegPosition>(
-                    "leg_" + std::to_string(this->get_parameter("leg_id").as_int()) + "_target_position", 10, std::bind(&LegServoController::topic_callback, this, _1));
+                    "leg_target_position", 10, std::bind(&LegServoController::topic_callback, this, _1));
             }
             
             catch(int e)

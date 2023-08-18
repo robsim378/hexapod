@@ -29,7 +29,7 @@ def generate_launch_description():
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        # name='robot_state_publisher',
+        name='robot_state_publisher',
         parameters=[{
             'robot_description': robot_description
         }]
@@ -39,7 +39,7 @@ def generate_launch_description():
         package='joint_state_publisher_gui',
         executable='joint_state_publisher_gui',
         name='joint_state_publisher_gui',
-        # condition=IfCondition(LaunchConfiguration('rviz'))
+        condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
     rviz_node = Node(
@@ -58,7 +58,7 @@ def generate_launch_description():
         package='hexapod_nodes',
         namespace='leg_1',
         executable='leg_movement_controller',
-        name='leg_1_movement_controller',
+        name='leg_movement_controller',
         parameters=[{
             "leg_id": 1
         }]
@@ -67,7 +67,7 @@ def generate_launch_description():
         package='hexapod_nodes',
         namespace='leg_1',
         executable='leg_servo_controller',
-        name='leg_1_servo_controller',
+        name='leg_servo_controller',
         parameters=[{
             "leg_id": 1
         }]
@@ -81,6 +81,6 @@ def generate_launch_description():
         robot_state_publisher_node,
         rviz_node,
 
-        # leg_1_movement_controller_node,
-        # leg_1_servo_controller_node
+        leg_1_movement_controller_node,
+        leg_1_servo_controller_node
     ])
