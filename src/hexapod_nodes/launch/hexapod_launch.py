@@ -52,6 +52,34 @@ def generate_launch_description():
     )
 
 
+    # LEG 0 nodes
+    leg_0_movement_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_0',
+        executable='leg_movement_controller',
+        name='leg_movement_controller',
+        parameters=[{
+            "leg_id": 0
+        }]
+    )
+    leg_0_servo_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_0',
+        executable='leg_servo_controller',
+        name='leg_servo_controller',
+        parameters=[{
+            "leg_id": 0
+        }]
+    )
+    leg_0_state_broadcaster_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_0',
+        executable='leg_state_broadcaster',
+        name='leg_state_broadcaster',
+        parameters=[{
+            "leg_id": 0
+        }]
+    )
 
     # LEG 1 nodes
     leg_1_movement_controller_node = Node(
@@ -82,6 +110,122 @@ def generate_launch_description():
         }]
     )
 
+    # LEG 2 nodes
+    leg_2_movement_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_2',
+        executable='leg_movement_controller',
+        name='leg_movement_controller',
+        parameters=[{
+            "leg_id": 2
+        }]
+    )
+    leg_2_servo_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_2',
+        executable='leg_servo_controller',
+        name='leg_servo_controller',
+        parameters=[{
+            "leg_id": 2
+        }]
+    )
+    leg_2_state_broadcaster_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_2',
+        executable='leg_state_broadcaster',
+        name='leg_state_broadcaster',
+        parameters=[{
+            "leg_id": 2
+        }]
+    )
+
+    # LEG 3 nodes
+    leg_3_movement_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_3',
+        executable='leg_movement_controller',
+        name='leg_movement_controller',
+        parameters=[{
+            "leg_id": 3
+        }]
+    )
+    leg_3_servo_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_3',
+        executable='leg_servo_controller',
+        name='leg_servo_controller',
+        parameters=[{
+            "leg_id": 3
+        }]
+    )
+    leg_3_state_broadcaster_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_3',
+        executable='leg_state_broadcaster',
+        name='leg_state_broadcaster',
+        parameters=[{
+            "leg_id": 3
+        }]
+    )
+
+    # LEG 4 nodes
+    leg_4_movement_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_4',
+        executable='leg_movement_controller',
+        name='leg_movement_controller',
+        parameters=[{
+            "leg_id": 4
+        }]
+    )
+    leg_4_servo_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_4',
+        executable='leg_servo_controller',
+        name='leg_servo_controller',
+        parameters=[{
+            "leg_id": 4
+        }]
+    )
+    leg_4_state_broadcaster_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_4',
+        executable='leg_state_broadcaster',
+        name='leg_state_broadcaster',
+        parameters=[{
+            "leg_id": 4
+        }]
+    )
+
+    # LEG 5 nodes
+    leg_5_movement_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_5',
+        executable='leg_movement_controller',
+        name='leg_movement_controller',
+        parameters=[{
+            "leg_id": 5
+        }]
+    )
+    leg_5_servo_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_5',
+        executable='leg_servo_controller',
+        name='leg_servo_controller',
+        parameters=[{
+            "leg_id": 5
+        }]
+    )
+    leg_5_state_broadcaster_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_5',
+        executable='leg_state_broadcaster',
+        name='leg_state_broadcaster',
+        parameters=[{
+            "leg_id": 5
+        }]
+    )
+
     return LaunchDescription([
         rviz_arg,
         rviz_config,
@@ -90,7 +234,27 @@ def generate_launch_description():
         robot_state_publisher_node,
         rviz_node,
 
+        leg_0_movement_controller_node,
+        leg_0_servo_controller_node,
+        leg_0_state_broadcaster_node,
+
         leg_1_movement_controller_node,
         leg_1_servo_controller_node,
         leg_1_state_broadcaster_node,
+
+        leg_2_movement_controller_node,
+        leg_2_servo_controller_node,
+        leg_2_state_broadcaster_node,
+
+        leg_3_movement_controller_node,
+        leg_3_servo_controller_node,
+        leg_3_state_broadcaster_node,
+
+        leg_4_movement_controller_node,
+        leg_4_servo_controller_node,
+        leg_4_state_broadcaster_node,
+
+        leg_5_movement_controller_node,
+        leg_5_servo_controller_node,
+        leg_5_state_broadcaster_node,
     ])

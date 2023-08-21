@@ -65,12 +65,12 @@ private:
 
   void timer_callback()
   {
-    auto command = hexapod_interfaces::msg::LegPosition();
-    command.joint0 = 0.0;
-    command.joint1 = 0.785;
-    command.joint2 = -1.571;
-    RCLCPP_INFO(this->get_logger(), "Publishing to leg %li:\njoint0: %lf\njoint1: %lf\njoint2: %lf", this->get_parameter("leg_id").as_int(), command.joint0, command.joint1, command.joint2);
-    publisher_->publish(command);
+    // auto command = hexapod_interfaces::msg::LegPosition();
+    // current_position.joint0 = 0.0;
+    // current_position.joint1 = 0.785;
+    // current_position.joint2 = -1.571;
+    RCLCPP_INFO(this->get_logger(), "Publishing to leg %li:\njoint0: %lf\njoint1: %lf\njoint2: %lf", this->get_parameter("leg_id").as_int(), current_position.joint0, current_position.joint1, current_position.joint2);
+    publisher_->publish(current_position);
   }
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<hexapod_interfaces::msg::LegPosition>::SharedPtr publisher_;
@@ -83,6 +83,9 @@ private:
     std::shared_ptr<const Target::Goal> goal)
   {
     RCLCPP_INFO(this->get_logger(), "Received movement request for leg %li:\nangle: %f\nh_position: %f\nv_position: %f\n", this->get_parameter("leg_id").as_int(), goal->angle, goal->h_position, goal->v_position);
+    current_position.joint0 = goal->angle;
+    current_position.joint1 = goal->h_position;
+    current_position.joint2 = goal->v_position;
     (void)uuid;
     return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
   }
@@ -118,6 +121,9 @@ private:
     RCLCPP_INFO(this->get_logger(), "Goal succeeded");
     
   }
+
+  hexapod_interfaces::msg::LegPosition target_position = hexapod_interfaces::msg::LegPosition();
+  hexapod_interfaces::msg::LegPosition current_position = hexapod_interfaces::msg::LegPosition();
 };  // class LegMovementController 
 
 // Main method. Self explanatory.
