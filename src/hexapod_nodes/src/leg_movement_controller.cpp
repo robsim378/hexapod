@@ -66,10 +66,10 @@ private:
   void timer_callback()
   {
     auto command = hexapod_interfaces::msg::LegPosition();
-    command.joint1 = 45.0;
-    command.joint2 = 50.0;
-    command.joint3 = 60.0;
-    RCLCPP_INFO(this->get_logger(), "Publishing to leg %li:\njoint1: %lf\njoint2: %lf\njoint3: %lf", this->get_parameter("leg_id").as_int(), command.joint1, command.joint2, command.joint3);
+    command.joint0 = 0.0;
+    command.joint1 = 0.785;
+    command.joint2 = -1.571;
+    RCLCPP_INFO(this->get_logger(), "Publishing to leg %li:\njoint0: %lf\njoint1: %lf\njoint2: %lf", this->get_parameter("leg_id").as_int(), command.joint0, command.joint1, command.joint2);
     publisher_->publish(command);
   }
   rclcpp::TimerBase::SharedPtr timer_;

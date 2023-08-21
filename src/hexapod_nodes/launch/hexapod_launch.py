@@ -72,15 +72,25 @@ def generate_launch_description():
             "leg_id": 1
         }]
     )
+    leg_1_state_broadcaster_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_1',
+        executable='leg_state_broadcaster',
+        name='leg_state_broadcaster',
+        parameters=[{
+            "leg_id": 1
+        }]
+    )
 
     return LaunchDescription([
         rviz_arg,
         rviz_config,
         model_arg,
-        joint_state_publisher_gui_node,
+        #joint_state_publisher_gui_node,
         robot_state_publisher_node,
         rviz_node,
 
         leg_1_movement_controller_node,
-        leg_1_servo_controller_node
+        leg_1_servo_controller_node,
+        leg_1_state_broadcaster_node,
     ])
