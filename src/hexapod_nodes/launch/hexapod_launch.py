@@ -226,6 +226,12 @@ def generate_launch_description():
         }]
     )
 
+    main_movement_controller = Node(
+        package='hexapod_nodes',
+        executable='main_movement_controller',
+        name='main_movement_controller'
+    )
+
     return LaunchDescription([
         rviz_arg,
         rviz_config,
@@ -257,4 +263,6 @@ def generate_launch_description():
         leg_5_movement_controller_node,
         leg_5_servo_controller_node,
         leg_5_state_broadcaster_node,
+
+        main_movement_controller,
     ])

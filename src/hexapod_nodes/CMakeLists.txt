@@ -36,10 +36,17 @@ ament_target_dependencies(leg_state_broadcaster
   "tf2_ros"
   "geometry_msgs")
 
+add_executable(main_movement_controller src/main_movement_controller.cpp)
+ament_target_dependencies(main_movement_controller
+  "rclcpp"
+  "hexapod_interfaces"
+  "rclcpp_action")
+
 install(TARGETS
   leg_movement_controller
   leg_servo_controller
   leg_state_broadcaster
+  main_movement_controller
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY

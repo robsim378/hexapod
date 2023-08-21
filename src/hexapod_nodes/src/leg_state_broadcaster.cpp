@@ -19,11 +19,7 @@
 using std::placeholders::_1;
 
 /*
-This node is responsible for controlling the servo motors in an individual leg. It 
-receives input from that leg's movement controller and moves the servo motors accordingly.
-Input is received on a topic, so there is no reporting back to the leg movement controller.
-That is done by a separate node that reads the positions of the legs using sensors to more 
-accurately reflect the robot's state.
+This node is responsible for broadcasting the current state of its leg on the tf2 topic.
 */
 class LegStateBroadcaster: public rclcpp::Node
 {
