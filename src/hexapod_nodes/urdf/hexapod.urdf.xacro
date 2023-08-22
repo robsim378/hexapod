@@ -59,7 +59,7 @@
         </link>
 
         <!-- Joint connecting body to first leg segment -->
-        <joint name="body_to_leg_${leg_id}_segment_0" type="revolute">
+        <joint name="leg_${leg_id}_body_to_segment_0" type="revolute">
             <parent link="body"/>
             <child link="leg_${leg_id}_segment_0"/>
             <axis xyz="1 0 0"/>
