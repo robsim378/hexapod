@@ -9,17 +9,12 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(hexapod_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rclcpp_action REQUIRED)
-find_package(tf2 REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
 # Configuration for the leg movement controller
 add_executable(leg_movement_controller src/leg_movement_controller.cpp)
 ament_target_dependencies(leg_movement_controller
   "rclcpp"
-  "rclcpp_action"
   "hexapod_interfaces")
 
 # Configuration for the leg servo controller
@@ -33,17 +28,13 @@ add_executable(leg_state_broadcaster src/leg_state_broadcaster.cpp)
 ament_target_dependencies(leg_state_broadcaster
   "rclcpp"
   "hexapod_interfaces"
-  "tf2"
-  "tf2_ros"
-  "geometry_msgs"
   "sensor_msgs")
 
 add_executable(main_movement_controller src/main_movement_controller.cpp)
 ament_target_dependencies(main_movement_controller
   "rclcpp"
-  "hexapod_interfaces"
-  "rclcpp_action")
-
+  "hexapod_interfaces")
+  
 install(TARGETS
   leg_movement_controller
   leg_servo_controller

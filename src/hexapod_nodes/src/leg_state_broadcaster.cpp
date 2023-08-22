@@ -4,18 +4,9 @@
 #include <string>
 #include <math.h>
 
-#include "tf2_ros/transform_broadcaster.h"
-#include "tf2/LinearMath/Quaternion.h"
-#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "hexapod_interfaces/msg/leg_position.hpp"
-
-#define BODY_RADIUS 0.5
-#define LEG_RADIUS 0.2
-#define SEGMENT_0_LENGTH 0.5
-#define SEGMENT_1_LENGTH 1
-#define SEGMENT_2_LENGTH 2
 
 using std::placeholders::_1;
 
@@ -85,7 +76,6 @@ class LegStateBroadcaster: public rclcpp::Node
         int leg_id;
         rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr publisher_;
         rclcpp::Subscription<hexapod_interfaces::msg::LegPosition>::SharedPtr subscription_;
-        std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
         std::string legname_;
 };
 

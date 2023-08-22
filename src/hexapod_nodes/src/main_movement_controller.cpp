@@ -2,10 +2,11 @@
 #include <memory>
 #include <thread>
 #include <chrono>
+#include <string>
 
-#include "hexapod_interfaces/action/leg_movement_command.hpp"
+#include "hexapod_interfaces/msg/leg_movement_command.hpp"
+#include "hexapod_interfaces/msg/leg_state.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "rclcpp_action/rclcpp_action.hpp"
 
 /*
 This node is responsible for controlling the movement of the entire hexapod. It determines 
@@ -16,88 +17,92 @@ actually moving the legs.
 class MainMovementController : public rclcpp::Node
 {
 public:
-    using Target = hexapod_interfaces::action::LegMovementCommand;
-    using GoalHandleTarget = rclcpp_action::ClientGoalHandle<Target>;
-
-    explicit MainMovementController(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
-    : Node("main_movement_controller", options)
-    {
-        // create action client for an individual leg
-        this->client_ptr_ = rclcpp_action::create_client<Target>(
-            this,
-            "leg_4/move_leg");
-        
-        this->timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(500),
-            std::bind(&MainMovementController::send_goal, 
-            this));
-    }
-
-    void send_goal()
+    MainMovementController()
+    : Node("main_movement_controller")//, count_(0)
     {
         using namespace std::placeholders;
 
-        this->timer_->cancel();
+        timer_ = this->create_wall_timer(
+            std::chrono::milliseconds(500),
+            std::bind(&MainMovementController::timer_callback, 
+            this));
+    
+        // Create the publisher for sending commands to leg_0
+        leg_0_command_publisher_ = this->create_publisher<hexapod_interfaces::msg::LegMovementCommand>(
+            "leg_0/leg_movement_command",
+            10);
+        // Create the subscriber for receiving the state of leg_0
+        leg_0_state_subscriber_ = this->create_subscription<hexapod_interfaces::msg::LegState>(
+            "leg_0/leg_state", 10, std::bind(&MainMovementController::leg_state_callback, this, _1));
 
-        if (!this->client_ptr_->wait_for_action_server()) {
-            RCLCPP_ERROR(this->get_logger(), "Action server not available after waiting");
-            rclcpp::shutdown();
-        }
+        // Create the publisher for sending commands to leg_1
+        leg_1_command_publisher_ = this->create_publisher<hexapod_interfaces::msg::LegMovementCommand>(
+            "leg_1/leg_movement_command",
+            10);
+        // Create the subscriber for receiving the state of leg_1
+        leg_1_state_subscriber_ = this->create_subscription<hexapod_interfaces::msg::LegState>(
+            "leg_1/leg_state", 10, std::bind(&MainMovementController::leg_state_callback, this, _1));
 
-        auto goal_msg = Target::Goal();
-        goal_msg.angle = 0.0;
-        goal_msg.h_position = 0.785;
-        goal_msg.v_position = -1.571;
+        // Create the publisher for sending commands to leg_2
+        leg_2_command_publisher_ = this->create_publisher<hexapod_interfaces::msg::LegMovementCommand>(
+            "leg_2/leg_movement_command",
+            10);
+        // Create the subscriber for receiving the state of leg_2
+        leg_2_state_subscriber_ = this->create_subscription<hexapod_interfaces::msg::LegState>(
+            "leg_2/leg_state", 10, std::bind(&MainMovementController::leg_state_callback, this, _1));
 
-        RCLCPP_INFO(this->get_logger(), "Sending goal");
+        // Create the publisher for sending commands to leg_3
+        leg_3_command_publisher_ = this->create_publisher<hexapod_interfaces::msg::LegMovementCommand>(
+            "leg_3/leg_movement_command",
+            10);
+        // Create the subscriber for receiving the state of leg_3
+        leg_3_state_subscriber_ = this->create_subscription<hexapod_interfaces::msg::LegState>(
+            "leg_3/leg_state", 10, std::bind(&MainMovementController::leg_state_callback, this, _1));
 
-        auto send_goal_options = rclcpp_action::Client<Target>::SendGoalOptions();
-        send_goal_options.goal_response_callback = 
-            std::bind(&MainMovementController::goal_response_callback, this, _1);
-        send_goal_options.feedback_callback =
-            std::bind(&MainMovementController::feedback_callback, this, _1, _2);
-        send_goal_options.result_callback = 
-            std::bind(&MainMovementController::result_callback, this, _1);
-        this->client_ptr_->async_send_goal(goal_msg, send_goal_options);
+        // Create the publisher for sending commands to leg_4
+        leg_4_command_publisher_ = this->create_publisher<hexapod_interfaces::msg::LegMovementCommand>(
+            "leg_4/leg_movement_command",
+            10);
+        // Create the subscriber for receiving the state of leg_4
+        leg_4_state_subscriber_ = this->create_subscription<hexapod_interfaces::msg::LegState>(
+            "leg_4/leg_state", 10, std::bind(&MainMovementController::leg_state_callback, this, _1));
+
+        // Create the publisher for sending commands to leg_5
+        leg_5_command_publisher_ = this->create_publisher<hexapod_interfaces::msg::LegMovementCommand>(
+            "leg_5/leg_movement_command",
+            10);
+        // Create the subscriber for receiving the state of leg_5
+        leg_5_state_subscriber_ = this->create_subscription<hexapod_interfaces::msg::LegState>(
+            "leg_5/leg_state", 10, std::bind(&MainMovementController::leg_state_callback, this, _1));
+
     }
 
 private:
-    rclcpp_action::Client<Target>::SharedPtr client_ptr_;
+    void leg_state_callback(const hexapod_interfaces::msg::LegState & msg) const
+    {
+        // TODO: Figure out how to get the ID of the leg in here.
+        // RCLCPP_INFO(this->get_logger(), "Received state for " + leg_name);
+    }
+
+    void timer_callback()
+    {
+
+    }
+
     rclcpp::TimerBase::SharedPtr timer_;
 
-    void goal_response_callback(const GoalHandleTarget::SharedPtr & goal_handle)
-    {
-        if (!goal_handle) {
-            RCLCPP_ERROR(this->get_logger(), "Goal was rejected by server");
-        } else {
-            RCLCPP_INFO(this->get_logger(), "Goal accepted by server, waiting for result");
-        }
-    }
-
-    void feedback_callback(
-        GoalHandleTarget::SharedPtr, 
-        const std::shared_ptr<const Target::Feedback> feedback)
-    {
-        
-    }
-
-    void result_callback(const GoalHandleTarget::WrappedResult & result)
-    {
-        switch (result.code) {
-            case rclcpp_action::ResultCode::SUCCEEDED:
-                break;
-            case rclcpp_action::ResultCode::ABORTED:
-                RCLCPP_ERROR(this->get_logger(), "Goal was aborted");
-                return;
-            case rclcpp_action::ResultCode::CANCELED:
-                RCLCPP_ERROR(this->get_logger(), "Goal was canceled");
-                return;
-            default:
-                RCLCPP_ERROR(this->get_logger(), "Unknown result code");
-                return;
-        }
-        RCLCPP_INFO(this->get_logger(), "Step completed");
-    }
+    rclcpp::Publisher<hexapod_interfaces::msg::LegMovementCommand>::SharedPtr leg_0_command_publisher_;
+    rclcpp::Subscription<hexapod_interfaces::msg::LegState>::SharedPtr leg_0_state_subscriber_;
+    rclcpp::Publisher<hexapod_interfaces::msg::LegMovementCommand>::SharedPtr leg_1_command_publisher_;
+    rclcpp::Subscription<hexapod_interfaces::msg::LegState>::SharedPtr leg_1_state_subscriber_;
+    rclcpp::Publisher<hexapod_interfaces::msg::LegMovementCommand>::SharedPtr leg_2_command_publisher_;
+    rclcpp::Subscription<hexapod_interfaces::msg::LegState>::SharedPtr leg_2_state_subscriber_;
+    rclcpp::Publisher<hexapod_interfaces::msg::LegMovementCommand>::SharedPtr leg_3_command_publisher_;
+    rclcpp::Subscription<hexapod_interfaces::msg::LegState>::SharedPtr leg_3_state_subscriber_;
+    rclcpp::Publisher<hexapod_interfaces::msg::LegMovementCommand>::SharedPtr leg_4_command_publisher_;
+    rclcpp::Subscription<hexapod_interfaces::msg::LegState>::SharedPtr leg_4_state_subscriber_;
+    rclcpp::Publisher<hexapod_interfaces::msg::LegMovementCommand>::SharedPtr leg_5_command_publisher_;
+    rclcpp::Subscription<hexapod_interfaces::msg::LegState>::SharedPtr leg_5_state_subscriber_;
 };
 
 // Main method. Self explanatory.

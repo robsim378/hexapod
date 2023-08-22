@@ -2,11 +2,14 @@
 #include <memory>
 #include <thread>
 #include <chrono>
+#include <string>
 
-#include "hexapod_interfaces/action/leg_movement_command.hpp"
+#include "hexapod_interfaces/msg/leg_movement_command.hpp"
 #include "hexapod_interfaces/msg/leg_position.hpp"
+#include "hexapod_interfaces/msg/leg_state.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "rclcpp_action/rclcpp_action.hpp"
+
+using namespace std::chrono_literals;
 
 /*
 This node is responsible for handling the pathfinding and control of an individual leg.
@@ -17,16 +20,12 @@ that handles inverse kinematics.
 class LegMovementController : public rclcpp::Node
 {
 public:
-  // Target is the input received from the main movement controller.
-  using Target = hexapod_interfaces::action::LegMovementCommand;
-  using GoalHandleTarget = rclcpp_action::ServerGoalHandle<Target>;
-
-  explicit LegMovementController(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
-  : Node("leg_movement_controller", options)
+  LegMovementController()
+  : Node("leg_movement_controller")//, count_(0)
   {
     using namespace std::placeholders;
 
-    // Parameter used to set the frequency with which commands are sent to the servo controller.
+    // Parameter used to set the frequency of the main loop
     this->declare_parameter("control_frequency", 1);
 
     // Parameter used to identify which leg this controller is used for. Set to an invalid value by default.
@@ -41,18 +40,22 @@ public:
       }
 
       // Define the publisher for sending commands to the servo controller
-      publisher_ = this->create_publisher<hexapod_interfaces::msg::LegPosition>(
+      command_publisher_ = this->create_publisher<hexapod_interfaces::msg::LegPosition>(
         "leg_target_position", 10);
-      timer_ = this->create_wall_timer(
-        std::chrono::seconds((int)(1.0 / this->get_parameter("control_frequency").as_int())), std::bind(&LegMovementController::timer_callback, this));
 
-      // Define the action server for movement commands
-      this->action_server_ = rclcpp_action::create_server<Target>(
-        this,
-        "move_leg",
-        std::bind(&LegMovementController::handle_goal, this, _1, _2),
-        std::bind(&LegMovementController::handle_cancel, this, _1),
-        std::bind(&LegMovementController::handle_accepted, this, _1));
+      loop_timer_ = this->create_wall_timer(
+        std::chrono::seconds((int)(1.0 / this->get_parameter("control_frequency").as_int())), 
+        std::bind(&LegMovementController::loop_timer_callback, 
+        this));
+
+      // Define the publisher for reporting the state of the leg to the main movement controller
+      state_publisher_ = this->create_publisher<hexapod_interfaces::msg::LegState>(
+        "leg_state", 10);
+
+      // Define the subscriber for receiving movement commands from the main movement controller
+      command_subscriber_ = this->create_subscription<hexapod_interfaces::msg::LegMovementCommand>(
+        "leg_movement_command", 10, std::bind(&LegMovementController::command_callback, this, _1));
+
     }
     catch(int e)
     {
@@ -63,67 +66,41 @@ public:
 
 private:
 
-  void timer_callback()
+  // Get the current movement command, calculate the current position of the leg, and send the appropriate
+  // information to the servo controller and the main movement controller.
+  void loop_timer_callback()
   {
-    // auto command = hexapod_interfaces::msg::LegPosition();
-    // current_position.joint0 = 0.0;
-    // current_position.joint1 = 0.785;
-    // current_position.joint2 = -1.571;
-    RCLCPP_INFO(this->get_logger(), "Publishing to leg %li:\njoint0: %lf\njoint1: %lf\njoint2: %lf", this->get_parameter("leg_id").as_int(), current_position.joint0, current_position.joint1, current_position.joint2);
-    publisher_->publish(current_position);
-  }
-  rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<hexapod_interfaces::msg::LegPosition>::SharedPtr publisher_;
+    // Forward kinematics goes here, for now it just echoes
+    RCLCPP_INFO(this->get_logger(), "Current leg state:\nangle: %lf\nh_position: %lf\nv_position: %lf", current_position.joint0, current_position.joint1, current_position.joint2);
 
-  rclcpp_action::Server<Target>::SharedPtr action_server_;
+    // This will become motion planning, for now it just echoes.
+    current_position.joint0 = command.angle;
+    current_position.joint1 = command.h_position;
+    current_position.joint2 = command.v_position;
+    RCLCPP_INFO(this->get_logger(), "Sending command to leg %li:\njoint0: %lf\njoint1: %lf\njoint2: %lf", this->get_parameter("leg_id").as_int(), current_position.joint0, current_position.joint1, current_position.joint2);
 
-  // The code to execute when a goal is received
-  rclcpp_action::GoalResponse handle_goal(
-    const rclcpp_action::GoalUUID & uuid,
-    std::shared_ptr<const Target::Goal> goal)
-  {
-    RCLCPP_INFO(this->get_logger(), "Received movement request for leg %li:\nangle: %f\nh_position: %f\nv_position: %f\n", this->get_parameter("leg_id").as_int(), goal->angle, goal->h_position, goal->v_position);
-    current_position.joint0 = goal->angle;
-    current_position.joint1 = goal->h_position;
-    current_position.joint2 = goal->v_position;
-    (void)uuid;
-    return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
-  }
-  
-  // The code to execute when a cancel request is received for a goal
-  rclcpp_action::CancelResponse handle_cancel(
-    const std::shared_ptr<GoalHandleTarget> goal_handle)
-  {
-    RCLCPP_INFO(this->get_logger(), "Received request to cancel goal");
-    (void)goal_handle;
-    return rclcpp_action::CancelResponse::ACCEPT;
-  }
-
-  // The code to execute when accepting a goal request
-  void handle_accepted(const std::shared_ptr<GoalHandleTarget> goal_handle)
-  {
-    using namespace std::placeholders;
-    // this needs to return quickly to avoid blocking the executor, so spin up a new thread
-    std::thread{std::bind(&LegMovementController::execute, this, _1), goal_handle}.detach();
-  }
-
-  // The code to execute when working towards a goal
-  void execute(const std::shared_ptr<GoalHandleTarget> goal_handle)
-  {
-    RCLCPP_INFO(this->get_logger(), "Executing goal");
-    rclcpp::Rate loop_rate(1);
-    const auto goal = goal_handle->get_goal();
-    auto result = std::make_shared<Target::Result>();
-
-    loop_rate.sleep();
-
-    goal_handle->succeed(result);
-    RCLCPP_INFO(this->get_logger(), "Goal succeeded");
+    // Inverse kinematics will go here, for now it just echoes.
+    target_position = current_position;
     
+    // Send the movement command to the leg servo controller
+    command_publisher_->publish(target_position);
   }
 
-  hexapod_interfaces::msg::LegPosition target_position = hexapod_interfaces::msg::LegPosition();
-  hexapod_interfaces::msg::LegPosition current_position = hexapod_interfaces::msg::LegPosition();
+  // Receive a movement command and update the stored command
+  void command_callback(const hexapod_interfaces::msg::LegMovementCommand & msg) const
+  {
+    RCLCPP_INFO(this->get_logger(), "Received movement command:\ngrounded: %i\nangle: %lf\nh_position: %lf\nv_position: %lf", msg.grounded, msg.angle, msg.h_position, msg.v_position);
+    // command = msg;
+  }
+
+  rclcpp::TimerBase::SharedPtr loop_timer_;
+  rclcpp::Publisher<hexapod_interfaces::msg::LegPosition>::SharedPtr command_publisher_;
+  rclcpp::Publisher<hexapod_interfaces::msg::LegState>::SharedPtr state_publisher_;
+  rclcpp::Subscription<hexapod_interfaces::msg::LegMovementCommand>::SharedPtr command_subscriber_;
+
+  hexapod_interfaces::msg::LegPosition target_position; // = hexapod_interfaces::msg::LegPosition();
+  hexapod_interfaces::msg::LegPosition current_position; // = hexapod_interfaces::msg::LegPosition();
+  hexapod_interfaces::msg::LegMovementCommand command; // = hexapod_interfaces::msg::LegMovementCommand();
 };  // class LegMovementController 
 
 // Main method. Self explanatory.

@@ -26,8 +26,9 @@ endif()
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-	"action/LegMovementCommand.action"
+	"msg/LegMovementCommand.msg"
 	"msg/LegPosition.msg"
+  "msg/LegState.msg"
 )
 
 ament_package()
