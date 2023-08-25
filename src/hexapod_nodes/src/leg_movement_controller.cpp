@@ -70,6 +70,43 @@ public:
   }
 
 private:
+  // Given the angles of all the joints in the leg, 
+  // calculate the position of the foot relative to the base of the leg
+  hexapod_interfaces::msg::LegState forward_kinematics(float joint0, float joint1, float joint2)
+  {
+    hexapod_interfaces::msg::LegState result;
+    // Calculate the height of the foot
+    result.z_position = SEGMENT_1_LENGTH * std::sin(joint1) - SEGMENT_2_LENGTH * std::cos((M_PI - joint2) - (M_PI / 2 - joint1));
+    // Calculate the distance of the foot from the joint in the XY plane, ignoring the height
+    float current_distance = SEGMENT_1_LENGTH * std::cos(joint1) + SEGMENT_2_LENGTH * std::sin((M_PI - joint2) - (M_PI / 2 - joint1)) + SEGMENT_0_LENGTH;
+    // Calculate the X and Y coordinates of the foot
+    result.x_position = current_distance * std::sin(joint0);
+    result.y_position = current_distance * std::cos(joint0);
+
+    return result;
+  }
+
+  // Given the desired position of the foot relative to the base of the leg, 
+  // calculate the angles required for all the joints to place the foot there
+  hexapod_interfaces::msg::LegPosition inverse_kinematics(float x_position, float y_position, float z_position)
+  {
+    hexapod_interfaces::msg::LegPosition result;
+
+    // Calculate angle of first joint
+    result.joint0 = std::atan(x_position / y_position);
+
+    // Calculate target distance from origin on the XY plane, ignoring the height 
+    float target_distance = std::sqrt(std::pow(x_position, 2) + std::pow(y_position, 2)) - SEGMENT_0_LENGTH;
+    
+    // Inverse kinematics to calculate the positions of the remaining two joints.
+    float q2 = -std::acos((std::pow(target_distance, 2) + std::pow(z_position, 2) - std::pow(SEGMENT_1_LENGTH, 2) - std::pow(SEGMENT_2_LENGTH, 2)) / (2 * SEGMENT_1_LENGTH * SEGMENT_2_LENGTH));
+    float q1 = std::atan(z_position / target_distance) + std::atan((SEGMENT_2_LENGTH * std::sin(q2)) / (SEGMENT_1_LENGTH + SEGMENT_2_LENGTH * std::cos(q2)));
+    result.joint1 = -q1;
+    // This calculates the angle that the leg needs to be lowered at, which should be negative by the convention this robot uses for joint angles.
+    result.joint2 = -q2;
+
+    return result;
+  }
 
   // Get the current movement command, calculate the current position of the leg, and send the appropriate
   // information to the servo controller and the main movement controller.
@@ -78,36 +115,31 @@ private:
     // Get the current position of the leg from sensors
     // tf2 listener goes here
 
+    current_position.joint0 = target_position.joint0;
+    current_position.joint1 = target_position.joint1;
+    current_position.joint2 = target_position.joint2;
+
     // Calculate the position of the leg in the LegState format, then send it to the main movement controller
-    // Forward kinematics goes here, for now it just echoes
-    state.x_position = current_position.joint0;
-    state.y_position = current_position.joint1;
-    state.z_position = current_position.joint2;
-    RCLCPP_INFO(this->get_logger(), "Current leg state:\nx_position: %lf\ny_position: %lf\nz_position: %lf", state.x_position, state.y_position, state.z_position);
+    // Forward kinematics: 
+    state = forward_kinematics(current_position.joint0, current_position.joint1, current_position.joint2);
+    // Publish the calculated position to the leg_n/leg_state topic
+    RCLCPP_INFO(this->get_logger(), "Current leg state:\nx_position: %lf\ny_position: %lf\nz_position: %lf\n", state.x_position, state.y_position, state.z_position);
     state_publisher_->publish(state);
 
+
     // Calculate the next position of the leg, then send it to the servo motor.
-    // This will become motion planning and inverse kinematics, for now it just echoes.
 
     // First, calculate the next state to put the leg into. Then, perform inverse kinematics to determine the position
     // of all the joints, then publish that on the command topic.
 
-    // Calculate angle of first joint and put it here
-    target_position.joint0 = std::atan(command.x_position / command.y_position);
 
-    // Calculate distance from origin, ignoring the z_position
-    float distance = std::sqrt(std::pow(command.x_position, 2) + std::pow(command.y_position, 2)) - SEGMENT_0_LENGTH;
+    // Inverse kinematics: 
+    target_position = inverse_kinematics(command.x_position, command.y_position, command.z_position);
     
-    // Inverse kinematics to calculate the positions of the remaining two joints.
-    float q2 = -std::acos((std::pow(distance, 2) + std::pow(command.z_position, 2) - std::pow(SEGMENT_1_LENGTH, 2) - std::pow(SEGMENT_2_LENGTH, 2)) / (2 * SEGMENT_1_LENGTH * SEGMENT_2_LENGTH));
-    float q1 = std::atan(command.z_position / distance) + std::atan((SEGMENT_2_LENGTH * std::sin(q2)) / (SEGMENT_1_LENGTH + SEGMENT_2_LENGTH * std::cos(q2)));
-    target_position.joint1 = -q1;
-    // This calculates the angle that the leg needs to be lowered at, which should be negative by the convention this robot uses for joint angles.
-    target_position.joint2 = -q2;
-    
+    // Log the results
     RCLCPP_INFO(this->get_logger(), "Sending command to leg %li:\njoint0: %lf\njoint1: %lf\njoint2: %lf", this->get_parameter("leg_id").as_int(), target_position.joint0, target_position.joint1, target_position.joint2);
 
-    // Send the movement command to the leg servo controller
+    // Send the movement command to the leg servo controller on the leg_n/leg_target_position topic
     command_publisher_->publish(target_position);
   }
 
