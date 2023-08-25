@@ -4,7 +4,7 @@
     <xacro:property name="body_radius" value="0.5"/>
     <xacro:property name="leg_radius" value="0.2"/>
     <xacro:property name="segment_0_length" value="0.5"/>
-    <xacro:property name="segment_1_length" value="1"/>
+    <xacro:property name="segment_1_length" value="2"/>
     <xacro:property name="segment_2_length" value="2"/>
 
     <!-- Some colors used throughout the model -->
@@ -91,7 +91,7 @@
             <parent link="leg_${leg_id}_segment_0"/>
             <child link="leg_${leg_id}_segment_1"/>
             <limit effort="1000.0" lower="-${2*pi/3}" upper="${2*pi/3}" velocity="0.5"/>
-            <origin xyz="0 0 ${segment_1_length/2}"/>
+            <origin xyz="0 0 ${segment_0_length}"/>
         </joint>
 
         <!-- Third leg segment -->
@@ -117,7 +117,7 @@
             <parent link="leg_${leg_id}_segment_1"/>
             <child link="leg_${leg_id}_segment_2"/>
             <limit effort="1000.0" lower="-${2*pi/3}" upper="${2*pi/3}" velocity="0.5"/>
-            <origin xyz="0 0 ${segment_2_length/2}"/>
+            <origin xyz="0 0 ${segment_1_length}"/>
         </joint>
 
     </xacro:macro>

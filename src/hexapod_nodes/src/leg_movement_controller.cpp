@@ -3,11 +3,16 @@
 #include <thread>
 #include <chrono>
 #include <string>
+#include <cmath>
 
 #include "hexapod_interfaces/msg/leg_movement_command.hpp"
 #include "hexapod_interfaces/msg/leg_position.hpp"
 #include "hexapod_interfaces/msg/leg_state.hpp"
 #include "rclcpp/rclcpp.hpp"
+
+#define SEGMENT_0_LENGTH 0.5
+#define SEGMENT_1_LENGTH 2
+#define SEGMENT_2_LENGTH 2
 
 using namespace std::chrono_literals;
 
@@ -70,27 +75,50 @@ private:
   // information to the servo controller and the main movement controller.
   void loop_timer_callback()
   {
+    // Get the current position of the leg from sensors
+    // tf2 listener goes here
+
+    // Calculate the position of the leg in the LegState format, then send it to the main movement controller
     // Forward kinematics goes here, for now it just echoes
-    RCLCPP_INFO(this->get_logger(), "Current leg state:\nangle: %lf\nh_position: %lf\nv_position: %lf", current_position.joint0, current_position.joint1, current_position.joint2);
+    state.x_position = current_position.joint0;
+    state.y_position = current_position.joint1;
+    state.z_position = current_position.joint2;
+    RCLCPP_INFO(this->get_logger(), "Current leg state:\nx_position: %lf\ny_position: %lf\nz_position: %lf", state.x_position, state.y_position, state.z_position);
+    state_publisher_->publish(state);
 
-    // This will become motion planning, for now it just echoes.
-    current_position.joint0 = command.angle;
-    current_position.joint1 = command.h_position;
-    current_position.joint2 = command.v_position;
-    RCLCPP_INFO(this->get_logger(), "Sending command to leg %li:\njoint0: %lf\njoint1: %lf\njoint2: %lf", this->get_parameter("leg_id").as_int(), current_position.joint0, current_position.joint1, current_position.joint2);
+    // Calculate the next position of the leg, then send it to the servo motor.
+    // This will become motion planning and inverse kinematics, for now it just echoes.
 
-    // Inverse kinematics will go here, for now it just echoes.
-    target_position = current_position;
+    // First, calculate the next state to put the leg into. Then, perform inverse kinematics to determine the position
+    // of all the joints, then publish that on the command topic.
+
+    // Calculate angle of first joint and put it here
+    target_position.joint0 = std::atan(command.x_position / command.y_position);
+
+    // Calculate distance from origin, ignoring the z_position
+    float distance = std::sqrt(std::pow(command.x_position, 2) + std::pow(command.y_position, 2)) - SEGMENT_0_LENGTH;
     
+    // Inverse kinematics to calculate the positions of the remaining two joints.
+    float q2 = -std::acos((std::pow(distance, 2) + std::pow(command.z_position, 2) - std::pow(SEGMENT_1_LENGTH, 2) - std::pow(SEGMENT_2_LENGTH, 2)) / (2 * SEGMENT_1_LENGTH * SEGMENT_2_LENGTH));
+    float q1 = std::atan(command.z_position / distance) + std::atan((SEGMENT_2_LENGTH * std::sin(q2)) / (SEGMENT_1_LENGTH + SEGMENT_2_LENGTH * std::cos(q2)));
+    target_position.joint1 = -q1;
+    // This calculates the angle that the leg needs to be lowered at, which should be negative by the convention this robot uses for joint angles.
+    target_position.joint2 = -q2;
+    
+    RCLCPP_INFO(this->get_logger(), "Sending command to leg %li:\njoint0: %lf\njoint1: %lf\njoint2: %lf", this->get_parameter("leg_id").as_int(), target_position.joint0, target_position.joint1, target_position.joint2);
+
     // Send the movement command to the leg servo controller
     command_publisher_->publish(target_position);
   }
 
   // Receive a movement command and update the stored command
-  void command_callback(const hexapod_interfaces::msg::LegMovementCommand & msg) const
+  void command_callback(const hexapod_interfaces::msg::LegMovementCommand & msg) 
   {
-    RCLCPP_INFO(this->get_logger(), "Received movement command:\ngrounded: %i\nangle: %lf\nh_position: %lf\nv_position: %lf", msg.grounded, msg.angle, msg.h_position, msg.v_position);
-    // command = msg;
+    RCLCPP_INFO(this->get_logger(), "Received movement command:\ngrounded: %i\nx_position: %lf\ny_position: %lf\nz_position: %lf", msg.grounded, msg.x_position, msg.y_position, msg.z_position);
+    command.grounded = msg.grounded;
+    command.x_position = msg.x_position;
+    command.y_position = msg.y_position;
+    command.z_position = -msg.z_position;
   }
 
   rclcpp::TimerBase::SharedPtr loop_timer_;
@@ -98,9 +126,10 @@ private:
   rclcpp::Publisher<hexapod_interfaces::msg::LegState>::SharedPtr state_publisher_;
   rclcpp::Subscription<hexapod_interfaces::msg::LegMovementCommand>::SharedPtr command_subscriber_;
 
-  hexapod_interfaces::msg::LegPosition target_position; // = hexapod_interfaces::msg::LegPosition();
-  hexapod_interfaces::msg::LegPosition current_position; // = hexapod_interfaces::msg::LegPosition();
-  hexapod_interfaces::msg::LegMovementCommand command; // = hexapod_interfaces::msg::LegMovementCommand();
+  hexapod_interfaces::msg::LegPosition target_position;
+  hexapod_interfaces::msg::LegPosition current_position;
+  hexapod_interfaces::msg::LegMovementCommand command;
+  hexapod_interfaces::msg::LegState state;
 };  // class LegMovementController 
 
 // Main method. Self explanatory.

@@ -1,4 +1,4 @@
 bool grounded
-float64 angle
-float64 h_position
-float64 v_position
+float64 x_position
+float64 y_position
+float64 z_position
