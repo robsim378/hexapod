@@ -77,10 +77,11 @@ public:
 
       
       // Set the starting position of the legs
-      current_position = inverse_kinematics(0.0, 2.0, -1.0);
+      current_position = inverse_kinematics(0.0, 3.0, 1.0);
       state = forward_kinematics(current_position.joint0, current_position.joint1, current_position.joint2);
       // Publish the calculated position to the leg_n/leg_state topic
       RCLCPP_INFO(this->get_logger(), "Current leg state:\nx_position: %lf\ny_position: %lf\nz_position: %lf\n", state.x_position, state.y_position, state.z_position);
+      command_publisher_->publish(current_position);
       state_publisher_->publish(state);
     }
     catch(int e)
@@ -137,6 +138,8 @@ private:
     // Publish the calculated position to the leg_n/leg_state topic
     RCLCPP_INFO(this->get_logger(), "Current leg state:\nx_position: %lf\ny_position: %lf\nz_position: %lf\n", state.x_position, state.y_position, state.z_position);
     state_publisher_->publish(state);
+    RCLCPP_INFO(this->get_logger(), "Sending command to leg %li:\njoint0: %lf\njoint1: %lf\njoint2: %lf", this->get_parameter("leg_id").as_int(), current_position.joint0, current_position.joint1, current_position.joint2);
+    // command_publisher_->publish(current_position);
   }
 
   // The code to execute when a goal is received
@@ -175,24 +178,23 @@ private:
   void execute(const std::shared_ptr<GoalHandleTarget> goal_handle)
   {
     RCLCPP_INFO(this->get_logger(), "Executing goal");
-    
-    
-    rclcpp::Rate loop_rate(1);
-    
+    rclcpp::Rate loop_rate(100);
     const auto goal = goal_handle->get_goal();
-    
     auto feedback = std::make_shared<Target::Feedback>();
-    
     auto result = std::make_shared<Target::Result>();
 
 
-    // Determine the target position of the movement
-    // Inverse kinematics: 
-    target_position = inverse_kinematics(goal->x_position, goal->y_position, -goal->z_position);
+    
+
+    // The number of subdivisions of the movement (i.e. how many intermediate positions are passed through on the way to the target)
+    int num_divisions = 100 / goal->speed;
+
+    float x_distance_per_division = (goal->x_position - state.x_position) / num_divisions;
+    float y_distance_per_division = (goal->y_position - state.y_position) / num_divisions;
+    float z_distance_per_division = -(goal->z_position - state.z_position) / num_divisions;
 
 
-
-    for (int i = 0; i < 10 && rclcpp::ok() && result->success == false; i++) {
+    for (int i = 0; i < num_divisions && rclcpp::ok() && result->success == false; i++) {
       
       
 
@@ -200,7 +202,12 @@ private:
 
       // First, calculate the next state to put the leg into. Then, perform inverse kinematics to determine the position
       // of all the joints, then publish that on the command topic.
-    
+      
+      // Determine the target position of the movement
+      // Inverse kinematics: 
+      target_position = inverse_kinematics(state.x_position + x_distance_per_division, state.y_position + y_distance_per_division, -state.z_position + z_distance_per_division);
+
+
       // Log the results
       RCLCPP_INFO(this->get_logger(), "Sending command to leg %li:\njoint0: %lf\njoint1: %lf\njoint2: %lf", this->get_parameter("leg_id").as_int(), target_position.joint0, target_position.joint1, target_position.joint2);
 

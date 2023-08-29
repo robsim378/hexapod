@@ -247,9 +247,10 @@ def generate_launch_description():
         robot_state_publisher_node,
         rviz_node,
 
-        leg_0_movement_controller_node,
         leg_0_servo_controller_node,
         leg_0_state_broadcaster_node,
+        leg_0_movement_controller_node,
+        
 
         leg_1_movement_controller_node,
         leg_1_servo_controller_node,
