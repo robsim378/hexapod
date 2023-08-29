@@ -13,8 +13,8 @@ find_package(rclcpp_action)
 find_package(sensor_msgs REQUIRED)
 
 # Configuration for the leg movement controller
-add_executable(leg_movement_controller src/leg_movement_controller.cpp)
-ament_target_dependencies(leg_movement_controller
+add_executable(leg_motion_controller src/leg_motion_controller.cpp)
+ament_target_dependencies(leg_motion_controller
   "rclcpp"
   "rclcpp_action"
   "hexapod_interfaces")
@@ -26,23 +26,23 @@ ament_target_dependencies(leg_servo_controller
   "hexapod_interfaces")
 
 # Configuration for the leg state broadcaster
-add_executable(leg_state_broadcaster src/leg_state_broadcaster.cpp)
-ament_target_dependencies(leg_state_broadcaster
+add_executable(leg_position_broadcaster src/leg_position_broadcaster.cpp)
+ament_target_dependencies(leg_position_broadcaster
   "rclcpp"
   "hexapod_interfaces"
   "sensor_msgs")
 
-add_executable(main_movement_controller src/main_movement_controller.cpp)
-ament_target_dependencies(main_movement_controller
+add_executable(gait_controller src/gait_controller.cpp)
+ament_target_dependencies(gait_controller
   "rclcpp"
   "rclcpp_action"
   "hexapod_interfaces")
 
 install(TARGETS
-  leg_movement_controller
+  leg_motion_controller
   leg_servo_controller
-  leg_state_broadcaster
-  main_movement_controller
+  leg_position_broadcaster
+  gait_controller
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY

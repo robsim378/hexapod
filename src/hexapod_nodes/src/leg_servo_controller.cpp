@@ -1,7 +1,7 @@
 #include <memory>
 
 #include "rclcpp/rclcpp.hpp"
-#include "hexapod_interfaces/msg/leg_position.hpp"
+#include "hexapod_interfaces/msg/joint_angles.hpp"
 
 using std::placeholders::_1;
 
@@ -26,26 +26,26 @@ class LegServoController : public rclcpp::Node
                 // Check if the leg_id has been set. If not, log an error and throw an exception.
                 if(this->get_parameter("leg_id").as_int() < 0) 
                 {
-                    throw std::invalid_argument("Leg movement controller configuration invalid: No leg_id set.");
+                    throw std::invalid_argument("Leg motion controller configuration invalid: No leg_id set.");
                 }
                 // Subscribe to the topic on which to receive commands.
-                subscription_ = this->create_subscription<hexapod_interfaces::msg::LegPosition>(
-                    "leg_target_position", 10, std::bind(&LegServoController::topic_callback, this, _1));
+                subscription_ = this->create_subscription<hexapod_interfaces::msg::JointAngles>(
+                    "target_joint_angles", 10, std::bind(&LegServoController::topic_callback, this, _1));
             }
             
             catch(int e)
             {
-                RCLCPP_ERROR(this->get_logger(), "Leg movement controller configuration invalid: No leg_id set.");
+                RCLCPP_ERROR(this->get_logger(), "Leg motion controller configuration invalid: No leg_id set.");
             }
         }
 
     private:
         // Code to execute when receiving a command.
-        void topic_callback(const hexapod_interfaces::msg::LegPosition & msg) const
+        void topic_callback(const hexapod_interfaces::msg::JointAngles & msg) const
         {
-            RCLCPP_INFO(this->get_logger(), "Recieved movement command for leg %li:\njoint0: %f\njoint1: %f\njoint2: %f", this->get_parameter("leg_id").as_int(), msg.joint0, msg.joint1, msg.joint2);
+            RCLCPP_INFO(this->get_logger(), "Recieved motion command for leg %li:\njoint0: %f\njoint1: %f\njoint2: %f", this->get_parameter("leg_id").as_int(), msg.joint0, msg.joint1, msg.joint2);
         }
-        rclcpp::Subscription<hexapod_interfaces::msg::LegPosition>::SharedPtr subscription_;
+        rclcpp::Subscription<hexapod_interfaces::msg::JointAngles>::SharedPtr subscription_;
 };
 
 int main(int argc, char * argv[])

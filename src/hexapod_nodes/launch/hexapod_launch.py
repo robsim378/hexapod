@@ -59,11 +59,11 @@ def generate_launch_description():
 
 
     # LEG 0 nodes
-    leg_0_movement_controller_node = Node(
+    leg_0_motion_controller_node = Node(
         package='hexapod_nodes',
         namespace='leg_0',
-        executable='leg_movement_controller',
-        name='leg_movement_controller',
+        executable='leg_motion_controller',
+        name='leg_motion_controller',
         parameters=[{
             "leg_id": 0
         }]
@@ -77,22 +77,22 @@ def generate_launch_description():
             "leg_id": 0
         }]
     )
-    leg_0_state_broadcaster_node = Node(
+    leg_0_position_broadcaster_node = Node(
         package='hexapod_nodes',
         namespace='leg_0',
-        executable='leg_state_broadcaster',
-        name='leg_state_broadcaster',
+        executable='leg_position_broadcaster',
+        name='leg_position_broadcaster',
         parameters=[{
             "leg_id": 0
         }]
     )
 
     # LEG 1 nodes
-    leg_1_movement_controller_node = Node(
+    leg_1_motion_controller_node = Node(
         package='hexapod_nodes',
         namespace='leg_1',
-        executable='leg_movement_controller',
-        name='leg_movement_controller',
+        executable='leg_motion_controller',
+        name='leg_motion_controller',
         parameters=[{
             "leg_id": 1
         }]
@@ -106,22 +106,22 @@ def generate_launch_description():
             "leg_id": 1
         }]
     )
-    leg_1_state_broadcaster_node = Node(
+    leg_1_position_broadcaster_node = Node(
         package='hexapod_nodes',
         namespace='leg_1',
-        executable='leg_state_broadcaster',
-        name='leg_state_broadcaster',
+        executable='leg_position_broadcaster',
+        name='leg_position_broadcaster',
         parameters=[{
             "leg_id": 1
         }]
     )
 
     # LEG 2 nodes
-    leg_2_movement_controller_node = Node(
+    leg_2_motion_controller_node = Node(
         package='hexapod_nodes',
         namespace='leg_2',
-        executable='leg_movement_controller',
-        name='leg_movement_controller',
+        executable='leg_motion_controller',
+        name='leg_motion_controller',
         parameters=[{
             "leg_id": 2
         }]
@@ -135,22 +135,22 @@ def generate_launch_description():
             "leg_id": 2
         }]
     )
-    leg_2_state_broadcaster_node = Node(
+    leg_2_position_broadcaster_node = Node(
         package='hexapod_nodes',
         namespace='leg_2',
-        executable='leg_state_broadcaster',
-        name='leg_state_broadcaster',
+        executable='leg_position_broadcaster',
+        name='leg_position_broadcaster',
         parameters=[{
             "leg_id": 2
         }]
     )
 
     # LEG 3 nodes
-    leg_3_movement_controller_node = Node(
+    leg_3_motion_controller_node = Node(
         package='hexapod_nodes',
         namespace='leg_3',
-        executable='leg_movement_controller',
-        name='leg_movement_controller',
+        executable='leg_motion_controller',
+        name='leg_motion_controller',
         parameters=[{
             "leg_id": 3
         }]
@@ -164,22 +164,22 @@ def generate_launch_description():
             "leg_id": 3
         }]
     )
-    leg_3_state_broadcaster_node = Node(
+    leg_3_position_broadcaster_node = Node(
         package='hexapod_nodes',
         namespace='leg_3',
-        executable='leg_state_broadcaster',
-        name='leg_state_broadcaster',
+        executable='leg_position_broadcaster',
+        name='leg_position_broadcaster',
         parameters=[{
             "leg_id": 3
         }]
     )
 
     # LEG 4 nodes
-    leg_4_movement_controller_node = Node(
+    leg_4_motion_controller_node = Node(
         package='hexapod_nodes',
         namespace='leg_4',
-        executable='leg_movement_controller',
-        name='leg_movement_controller',
+        executable='leg_motion_controller',
+        name='leg_motion_controller',
         parameters=[{
             "leg_id": 4
         }]
@@ -193,22 +193,22 @@ def generate_launch_description():
             "leg_id": 4
         }]
     )
-    leg_4_state_broadcaster_node = Node(
+    leg_4_position_broadcaster_node = Node(
         package='hexapod_nodes',
         namespace='leg_4',
-        executable='leg_state_broadcaster',
-        name='leg_state_broadcaster',
+        executable='leg_position_broadcaster',
+        name='leg_position_broadcaster',
         parameters=[{
             "leg_id": 4
         }]
     )
 
     # LEG 5 nodes
-    leg_5_movement_controller_node = Node(
+    leg_5_motion_controller_node = Node(
         package='hexapod_nodes',
         namespace='leg_5',
-        executable='leg_movement_controller',
-        name='leg_movement_controller',
+        executable='leg_motion_controller',
+        name='leg_motion_controller',
         parameters=[{
             "leg_id": 5
         }]
@@ -222,20 +222,20 @@ def generate_launch_description():
             "leg_id": 5
         }]
     )
-    leg_5_state_broadcaster_node = Node(
+    leg_5_position_broadcaster_node = Node(
         package='hexapod_nodes',
         namespace='leg_5',
-        executable='leg_state_broadcaster',
-        name='leg_state_broadcaster',
+        executable='leg_position_broadcaster',
+        name='leg_position_broadcaster',
         parameters=[{
             "leg_id": 5
         }]
     )
 
-    main_movement_controller = Node(
+    gait_controller = Node(
         package='hexapod_nodes',
-        executable='main_movement_controller',
-        name='main_movement_controller'
+        executable='gait_controller',
+        name='gait_controller'
     )
 
     return LaunchDescription([
@@ -247,30 +247,29 @@ def generate_launch_description():
         robot_state_publisher_node,
         rviz_node,
 
+        leg_0_motion_controller_node,
         leg_0_servo_controller_node,
-        leg_0_state_broadcaster_node,
-        leg_0_movement_controller_node,
-        
+        leg_0_position_broadcaster_node,
 
-        leg_1_movement_controller_node,
+        leg_1_motion_controller_node,
         leg_1_servo_controller_node,
-        leg_1_state_broadcaster_node,
+        leg_1_position_broadcaster_node,
 
-        leg_2_movement_controller_node,
+        leg_2_motion_controller_node,
         leg_2_servo_controller_node,
-        leg_2_state_broadcaster_node,
+        leg_2_position_broadcaster_node,
 
-        leg_3_movement_controller_node,
+        leg_3_motion_controller_node,
         leg_3_servo_controller_node,
-        leg_3_state_broadcaster_node,
+        leg_3_position_broadcaster_node,
 
-        leg_4_movement_controller_node,
+        leg_4_motion_controller_node,
         leg_4_servo_controller_node,
-        leg_4_state_broadcaster_node,
+        leg_4_position_broadcaster_node,
 
-        leg_5_movement_controller_node,
+        leg_5_motion_controller_node,
         leg_5_servo_controller_node,
-        leg_5_state_broadcaster_node,
+        leg_5_position_broadcaster_node,
 
-        main_movement_controller,
+        gait_controller,
     ])
