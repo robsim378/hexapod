@@ -27,7 +27,7 @@ that handles inverse kinematics.
 class LegMotionController : public rclcpp::Node
 {
 public:
-    // Target is the input received from the gait controller.
+    // Target is the input received from the step controller.
     using Target = hexapod_interfaces::action::LegMotionCommand;
     using GoalHandleTarget = rclcpp_action::ServerGoalHandle<Target>;
 
@@ -149,7 +149,7 @@ private:
         std::shared_ptr<const Target::Goal> goal)
     {
         // For now just accept all commands
-        RCLCPP_INFO(this->get_logger(), "Received motion command:\ngrounded: %i\nx_position: %lf\ny_position: %lf\nz_position: %lf", goal->grounded, goal->x_position, goal->y_position, goal->z_position);
+        RCLCPP_INFO(this->get_logger(), "Received motion command:\nx_position: %lf\ny_position: %lf\nz_position: %lf", goal->x_position, goal->y_position, goal->z_position);
         (void)uuid;
         return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
     }
@@ -229,6 +229,7 @@ private:
     hexapod_interfaces::msg::JointAngles current_joint_angles;
     hexapod_interfaces::action::LegMotionCommand command;
     hexapod_interfaces::msg::FootPosition foot_position;
+
 };  // class LegMotionController 
 
 // Main method. Self explanatory.

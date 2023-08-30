@@ -82,6 +82,7 @@ class LegPositionBroadcaster: public rclcpp::Node
         rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr publisher_;
         rclcpp::Subscription<hexapod_interfaces::msg::JointAngles>::SharedPtr subscription_;
         std::string legname_;
+
 };
 
 int main(int argc, char * argv[])

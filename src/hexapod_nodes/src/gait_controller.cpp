@@ -19,7 +19,7 @@ class GaitController : public rclcpp::Node
 {
 public:
 
-    using Target = hexapod_interfaces::action::LegMotionCommand;
+    using Target = hexapod_interfaces::action::LegStepCommand;
     using GoalHandleTarget = rclcpp_action::ClientGoalHandle<Target>;
 
     explicit GaitController(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
@@ -103,9 +103,7 @@ public:
         // Placeholder command
         goal_msg.grounded = true;
         goal_msg.speed = 0.50;
-        goal_msg.x_position = 0.0;
-        goal_msg.y_position = 1.0;
-        goal_msg.z_position = -1.0;
+        goal_msg.direction = 0.0;
 
         RCLCPP_INFO(this->get_logger(), "Sending goal");
 
@@ -120,17 +118,6 @@ public:
     }
 
 private:
-    // Declarations
-    rclcpp_action::Client<Target>::SharedPtr leg_0_step_client_ptr_;
-    rclcpp::TimerBase::SharedPtr timer_;
-
-    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_0_foot_position_subscriber_;
-    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_1_foot_position_subscriber_;
-    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_2_foot_position_subscriber_;
-    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_3_foot_position_subscriber_;
-    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_4_foot_position_subscriber_;
-    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_5_foot_position_subscriber_;
-
     // Function called when a response is received from an action
     void goal_response_callback(const GoalHandleTarget::SharedPtr & goal_handle)
     {
@@ -149,7 +136,7 @@ private:
 
     }
 
-    // Function calle when a result is received from an action
+    // Function called when a result is received from an action
     void result_callback(const GoalHandleTarget::WrappedResult & result)
     {
         switch (result.code) {
@@ -179,13 +166,26 @@ private:
     {
 
     }
+
+    // Declarations
+    rclcpp_action::Client<Target>::SharedPtr leg_0_step_client_ptr_;
+    rclcpp::TimerBase::SharedPtr timer_;
+
+    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_0_foot_position_subscriber_;
+    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_1_foot_position_subscriber_;
+    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_2_foot_position_subscriber_;
+    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_3_foot_position_subscriber_;
+    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_4_foot_position_subscriber_;
+    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_5_foot_position_subscriber_;
+
 };  // class GaitController
 
 // Main method. Self explanatory.
 int main(int argc, char * argv[])
 {
     rclcpp::init(argc, argv);
-    auto gait_controller = std::make_shared<GaitController>(); rclcpp::spin(gait_controller);
+    auto gait_controller = std::make_shared<GaitController>(); 
+    rclcpp::spin(gait_controller);
     rclcpp::shutdown();
     return 0;
 }

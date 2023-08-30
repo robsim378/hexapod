@@ -49,6 +49,7 @@ class LegServoController : public rclcpp::Node
 
         // Declarations
         rclcpp::Subscription<hexapod_interfaces::msg::JointAngles>::SharedPtr subscription_;
+
 };
 
 int main(int argc, char * argv[])
