@@ -7,10 +7,10 @@ using std::placeholders::_1;
 
 /*
 This node is responsible for controlling the servo motors in an individual leg. It 
-receives input from that leg's movement controller and moves the servo motors accordingly.
+receives input from that leg's motion controller and moves the servo motors accordingly.
 Input is received on a topic, so there is no reporting back to the leg movement controller.
-That is done by a separate node that reads the positions of the legs using sensors to more 
-accurately reflect the robot's state.
+That is done by a separate node that reads the angles of the joints using sensors to more 
+accurately reflect the leg's position.
 */
 class LegServoController : public rclcpp::Node
 {
@@ -26,7 +26,7 @@ class LegServoController : public rclcpp::Node
                 // Check if the leg_id has been set. If not, log an error and throw an exception.
                 if(this->get_parameter("leg_id").as_int() < 0) 
                 {
-                    throw std::invalid_argument("Leg motion controller configuration invalid: No leg_id set.");
+                    throw std::invalid_argument("Leg servo controller configuration invalid: No leg_id set.");
                 }
                 // Subscribe to the topic on which to receive commands.
                 subscription_ = this->create_subscription<hexapod_interfaces::msg::JointAngles>(
@@ -35,7 +35,7 @@ class LegServoController : public rclcpp::Node
             
             catch(int e)
             {
-                RCLCPP_ERROR(this->get_logger(), "Leg motion controller configuration invalid: No leg_id set.");
+                RCLCPP_ERROR(this->get_logger(), "Leg servo controller configuration invalid: No leg_id set.");
             }
         }
 
@@ -43,8 +43,11 @@ class LegServoController : public rclcpp::Node
         // Code to execute when receiving a command.
         void topic_callback(const hexapod_interfaces::msg::JointAngles & msg) const
         {
+            // Currently, this does nothing. This will remain empty until the hardware component of the project is built.
             RCLCPP_INFO(this->get_logger(), "Recieved motion command for leg %li:\njoint0: %f\njoint1: %f\njoint2: %f", this->get_parameter("leg_id").as_int(), msg.joint0, msg.joint1, msg.joint2);
         }
+
+        // Declarations
         rclcpp::Subscription<hexapod_interfaces::msg::JointAngles>::SharedPtr subscription_;
 };
 

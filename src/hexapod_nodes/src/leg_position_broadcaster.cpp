@@ -11,7 +11,7 @@
 using std::placeholders::_1;
 
 /*
-This node is responsible for broadcasting the current state of its leg on the tf2 topic.
+This node is responsible for broadcasting the current angles of the joints in its leg on the tf2 topic.
 */
 class LegPositionBroadcaster: public rclcpp::Node
 {
@@ -27,7 +27,7 @@ class LegPositionBroadcaster: public rclcpp::Node
                 // Check if the leg_id has been set. If not, log an error and throw an exception.
                 if(this->get_parameter("leg_id").as_int() < 0) 
                 {
-                    throw std::invalid_argument("Leg state broadcaster configuration invalid: No leg_id set.");
+                    throw std::invalid_argument("Leg position broadcaster configuration invalid: No leg_id set.");
                 }
                 leg_id = this->get_parameter("leg_id").as_int();
 
@@ -37,6 +37,7 @@ class LegPositionBroadcaster: public rclcpp::Node
                 subscription_ = this->create_subscription<hexapod_interfaces::msg::JointAngles>(
                     "target_joint_angles", 10, std::bind(&LegPositionBroadcaster::broadcast_position, this, _1));
 
+                // Create the publisher to send the joint angles
                 publisher_ = this->create_publisher<sensor_msgs::msg::JointState>(
                     "/joint_states",
                     10);
@@ -44,7 +45,7 @@ class LegPositionBroadcaster: public rclcpp::Node
             
             catch(int e)
             {
-                RCLCPP_ERROR(this->get_logger(), "Leg state broadcaster configuration invalid: No leg_id set.");
+                RCLCPP_ERROR(this->get_logger(), "Leg position broadcaster configuration invalid: No leg_id set.");
             }
         }
 
@@ -54,8 +55,9 @@ class LegPositionBroadcaster: public rclcpp::Node
         {
             // Define the JointState messages for the three joints in the leg
             sensor_msgs::msg::JointState joint_angles;
-
             joint_angles.header.stamp = this->get_clock()->now();
+
+            // Three joints per leg, so both of these arrays must be of length 3
             joint_angles.name.resize(3);
             joint_angles.position.resize(3);
 
@@ -69,10 +71,13 @@ class LegPositionBroadcaster: public rclcpp::Node
             joint_angles.position[1] = -msg->joint1;
             joint_angles.position[2] = msg->joint2;
 
+            // Publish the JointState message
             RCLCPP_INFO(this->get_logger(), "Recieved motion command for leg %li:\njoint0: %f\njoint1: %f\njoint2: %f", this->get_parameter("leg_id").as_int(), msg->joint0, msg->joint1, msg->joint2);
             publisher_->publish(joint_angles);
 
         }
+
+        // Declarations
         int leg_id;
         rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr publisher_;
         rclcpp::Subscription<hexapod_interfaces::msg::JointAngles>::SharedPtr subscription_;
