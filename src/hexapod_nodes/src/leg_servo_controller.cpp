@@ -28,6 +28,9 @@ class LegServoController : public rclcpp::Node
                 {
                     throw std::invalid_argument("Leg servo controller configuration invalid: No leg_id set.");
                 }
+
+                RCLCPP_INFO(this->get_logger(), "Starting leg_%li servo controller", this->get_parameter("leg_id").as_int());
+
                 // Subscribe to the topic on which to receive commands.
                 subscription_ = this->create_subscription<hexapod_interfaces::msg::JointAngles>(
                     "target_joint_angles", 10, std::bind(&LegServoController::topic_callback, this, _1));

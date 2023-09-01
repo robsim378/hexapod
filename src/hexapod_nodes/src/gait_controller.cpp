@@ -4,7 +4,7 @@
 #include <chrono>
 #include <string>
 
-#include "hexapod_interfaces/action/leg_motion_command.hpp"
+#include "hexapod_interfaces/action/leg_step_command.hpp"
 #include "hexapod_interfaces/msg/foot_position.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
@@ -25,6 +25,8 @@ public:
     explicit GaitController(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
     : Node("gait_controller", options)
     {
+        RCLCPP_INFO(this->get_logger(), "Starting gait controller");
+
         // Create the timer used for nothing at the moment
         timer_ = this->create_wall_timer(
             std::chrono::milliseconds(500),
@@ -87,7 +89,7 @@ public:
             });
     }
 
-    // Send a motion command to the leg motion controller
+    // Send a step command to the leg step controller
     void send_goal()
     {
         using namespace std::placeholders;
@@ -103,7 +105,9 @@ public:
         // Placeholder command
         goal_msg.grounded = true;
         goal_msg.speed = 0.50;
-        goal_msg.direction = 0.0;
+        goal_msg.x_position = 0.0;
+        goal_msg.y_position = 2.0;
+        goal_msg.z_position = -1.0;
 
         RCLCPP_INFO(this->get_logger(), "Sending goal");
 

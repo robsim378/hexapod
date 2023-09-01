@@ -29,6 +29,9 @@ class LegPositionBroadcaster: public rclcpp::Node
                 {
                     throw std::invalid_argument("Leg position broadcaster configuration invalid: No leg_id set.");
                 }
+
+                RCLCPP_INFO(this->get_logger(), "Starting leg_%li position broadcaster", this->get_parameter("leg_id").as_int());
+
                 leg_id = this->get_parameter("leg_id").as_int();
 
                 legname_ = "leg_" + std::to_string(leg_id);

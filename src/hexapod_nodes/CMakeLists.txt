@@ -50,6 +50,7 @@ install(TARGETS
     leg_motion_controller
     leg_servo_controller
     leg_position_broadcaster
+    leg_step_controller
     gait_controller
     DESTINATION lib/${PROJECT_NAME})
 

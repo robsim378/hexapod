@@ -50,6 +50,8 @@ public:
                 throw std::invalid_argument("Leg movement controller configuration invalid: No leg_id set.");
             }
 
+            RCLCPP_INFO(this->get_logger(), "Starting leg_%li motion controller", this->get_parameter("leg_id").as_int());
+
             // Define the publisher for sending commands to the servo controller
             command_publisher_ = this->create_publisher<hexapod_interfaces::msg::JointAngles>(
                 "target_joint_angles", 10);
@@ -72,13 +74,13 @@ public:
                 std::bind(&LegMotionController::handle_cancel, this, _1),
                 std::bind(&LegMotionController::handle_accepted, this, _1));
       
-            // Set the starting position of the foot
+            // Set the starting position of the foot. Remove this once the tf2 listener has been implemented
             current_joint_angles = inverse_kinematics(0.0, 3.0, 1.0);
             foot_position = forward_kinematics(current_joint_angles.joint0, current_joint_angles.joint1, current_joint_angles.joint2);
         }
         catch(int e)
         {
-            RCLCPP_ERROR(this->get_logger(), "Leg movement controller configuration invalid: No leg_id set.");
+            RCLCPP_ERROR(this->get_logger(), "Leg motion controller configuration invalid: No leg_id set.");
         }
     
     }
@@ -142,6 +144,9 @@ private:
         RCLCPP_INFO(this->get_logger(), "Current foot position:\nx_position: %lf\ny_position: %lf\nz_position: %lf\n", foot_position.x_position, foot_position.y_position, foot_position.z_position);
         foot_position_publisher_->publish(foot_position);
     }
+
+
+    // ########## MOTION COMMAND CALLBACKS ##########
 
     // The function to execute when a goal is received
     rclcpp_action::GoalResponse handle_goal(
@@ -217,7 +222,8 @@ private:
     
     }
 
-    // Declarations
+    // ########## DECLARATIONS ##########
+
     rclcpp_action::Server<Target>::SharedPtr action_server_;
 
     rclcpp::TimerBase::SharedPtr loop_timer_;
@@ -236,11 +242,8 @@ private:
 int main(int argc, char * argv[])
 {
     rclcpp::init(argc, argv);
-
     auto leg_motion_controller = std::make_shared<LegMotionController>();
-
     rclcpp::spin(leg_motion_controller);
-
     rclcpp::shutdown();
     return 0;
 }

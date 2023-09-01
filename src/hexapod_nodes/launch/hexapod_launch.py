@@ -86,6 +86,15 @@ def generate_launch_description():
             "leg_id": 0
         }]
     )
+    leg_0_step_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_0',
+        executable='leg_step_controller',
+        name='leg_step_controller',
+        parameters=[{
+            "leg_id": 0
+        }]
+    )
 
     # LEG 1 nodes
     leg_1_motion_controller_node = Node(
@@ -111,6 +120,15 @@ def generate_launch_description():
         namespace='leg_1',
         executable='leg_position_broadcaster',
         name='leg_position_broadcaster',
+        parameters=[{
+            "leg_id": 1
+        }]
+    )
+    leg_1_step_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_1',
+        executable='leg_step_controller',
+        name='leg_step_controller',
         parameters=[{
             "leg_id": 1
         }]
@@ -144,6 +162,15 @@ def generate_launch_description():
             "leg_id": 2
         }]
     )
+    leg_2_step_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_2',
+        executable='leg_step_controller',
+        name='leg_step_controller',
+        parameters=[{
+            "leg_id": 2
+        }]
+    )
 
     # LEG 3 nodes
     leg_3_motion_controller_node = Node(
@@ -169,6 +196,15 @@ def generate_launch_description():
         namespace='leg_3',
         executable='leg_position_broadcaster',
         name='leg_position_broadcaster',
+        parameters=[{
+            "leg_id": 3
+        }]
+    )
+    leg_3_step_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_3',
+        executable='leg_step_controller',
+        name='leg_step_controller',
         parameters=[{
             "leg_id": 3
         }]
@@ -202,6 +238,15 @@ def generate_launch_description():
             "leg_id": 4
         }]
     )
+    leg_4_step_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_4',
+        executable='leg_step_controller',
+        name='leg_step_controller',
+        parameters=[{
+            "leg_id": 4
+        }]
+    )
 
     # LEG 5 nodes
     leg_5_motion_controller_node = Node(
@@ -231,6 +276,15 @@ def generate_launch_description():
             "leg_id": 5
         }]
     )
+    leg_5_step_controller_node = Node(
+        package='hexapod_nodes',
+        namespace='leg_5',
+        executable='leg_step_controller',
+        name='leg_step_controller',
+        parameters=[{
+            "leg_id": 5
+        }]
+    )
 
     gait_controller = Node(
         package='hexapod_nodes',
@@ -250,26 +304,32 @@ def generate_launch_description():
         leg_0_motion_controller_node,
         leg_0_servo_controller_node,
         leg_0_position_broadcaster_node,
+        leg_0_step_controller_node,
 
         leg_1_motion_controller_node,
         leg_1_servo_controller_node,
         leg_1_position_broadcaster_node,
+        leg_1_step_controller_node,
 
         leg_2_motion_controller_node,
         leg_2_servo_controller_node,
         leg_2_position_broadcaster_node,
+        leg_2_step_controller_node,
 
         leg_3_motion_controller_node,
         leg_3_servo_controller_node,
         leg_3_position_broadcaster_node,
+        leg_3_step_controller_node,
 
         leg_4_motion_controller_node,
         leg_4_servo_controller_node,
         leg_4_position_broadcaster_node,
+        leg_4_step_controller_node,
 
         leg_5_motion_controller_node,
         leg_5_servo_controller_node,
         leg_5_position_broadcaster_node,
+        leg_5_step_controller_node,
 
         gait_controller,
     ])
