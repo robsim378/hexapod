@@ -141,7 +141,7 @@ private:
         foot_position = forward_kinematics(current_joint_angles.joint0, current_joint_angles.joint1, current_joint_angles.joint2);
 
         // Publish the calculated position to the leg_n/foot_position topic
-        RCLCPP_INFO(this->get_logger(), "Current foot position:\nx_position: %lf\ny_position: %lf\nz_position: %lf\n", foot_position.x_position, foot_position.y_position, foot_position.z_position);
+        // RCLCPP_INFO(this->get_logger(), "Current foot position:\nx_position: %lf\ny_position: %lf\nz_position: %lf\n", foot_position.x_position, foot_position.y_position, foot_position.z_position);
         foot_position_publisher_->publish(foot_position);
     }
 

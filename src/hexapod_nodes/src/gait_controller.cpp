@@ -162,7 +162,7 @@ private:
     // Function called when the position of a foot is received
     void foot_position_callback(const hexapod_interfaces::msg::FootPosition & msg, int leg_id) const
     {
-        RCLCPP_INFO(this->get_logger(), "Leg %i foot position:\nx_position: %lf\ny_position: %lf\nz_position: %lf\n", leg_id, msg.x_position, msg.y_position, msg.z_position);
+        // RCLCPP_INFO(this->get_logger(), "Leg %i foot position:\nx_position: %lf\ny_position: %lf\nz_position: %lf\n", leg_id, msg.x_position, msg.y_position, msg.z_position);
     }
 
     // Function called when the timer runs out.
