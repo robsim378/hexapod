@@ -43,6 +43,21 @@ public:
         this->leg_0_step_client_ptr_ = rclcpp_action::create_client<Target>(
             this,
             "leg_0/step");
+        this->leg_1_step_client_ptr_ = rclcpp_action::create_client<Target>(
+            this,
+            "leg_1/step");
+        this->leg_2_step_client_ptr_ = rclcpp_action::create_client<Target>(
+            this,
+            "leg_2/step");
+        this->leg_3_step_client_ptr_ = rclcpp_action::create_client<Target>(
+            this,
+            "leg_3/step");
+        this->leg_4_step_client_ptr_ = rclcpp_action::create_client<Target>(
+            this,
+            "leg_4/step");
+        this->leg_5_step_client_ptr_ = rclcpp_action::create_client<Target>(
+            this,
+            "leg_5/step");
 
 
 
@@ -87,27 +102,65 @@ public:
             [this](const hexapod_interfaces::msg::FootPosition msg) {
                 this->foot_position_callback(msg, 5);
             });
+
+        default_position();
     }
 
-    // Send a step command to the leg step controller
-    void send_goal()
+    // Send a command to every leg to go to a default position
+    void default_position()
     {
-        using namespace std::placeholders;
-
-        // TODO: Figure out how to access the client that called this function
-        if (!this->leg_0_step_client_ptr_->wait_for_action_server()) {
-            RCLCPP_ERROR(this->get_logger(), "Action server not available after waiting");
-            rclcpp::shutdown();
-        }
-
         auto goal_msg = Target::Goal();
 
-        // Placeholder command
+        // Default command
         goal_msg.grounded = true;
         goal_msg.speed = 0.50;
         goal_msg.x_position = 0.0;
-        goal_msg.y_position = 2.0;
+        goal_msg.y_position = 3.0;
         goal_msg.z_position = -1.0;
+
+        send_step_command(0, goal_msg);
+        send_step_command(1, goal_msg);
+        send_step_command(2, goal_msg);
+        send_step_command(3, goal_msg);
+        send_step_command(4, goal_msg);
+        send_step_command(5, goal_msg);
+    }
+
+    // Send a step command to the leg step controller specified
+    void send_step_command(int leg_id, auto goal_msg)
+    {
+        using namespace std::placeholders;
+
+        rclcpp_action::Client<Target>::SharedPtr step_client_ptr_;
+
+        switch (leg_id) {
+            case 0:
+                step_client_ptr_ = this->leg_0_step_client_ptr_;
+                break;
+            case 1:
+                step_client_ptr_ = this->leg_1_step_client_ptr_;
+                break;
+            case 2:
+                step_client_ptr_ = this->leg_2_step_client_ptr_;
+                break;
+            case 3:
+                step_client_ptr_ = this->leg_3_step_client_ptr_;
+                break;
+            case 4:
+                step_client_ptr_ = this->leg_4_step_client_ptr_;
+                break;
+            case 5:
+                step_client_ptr_ = this->leg_5_step_client_ptr_;
+                break;
+            default:
+                RCLCPP_ERROR(this->get_logger(), "Invalid leg_id for step");
+                rclcpp::shutdown();
+        }
+
+        if (!step_client_ptr_->wait_for_action_server()) {
+            RCLCPP_ERROR(this->get_logger(), "Action server not available after waiting");
+            rclcpp::shutdown();
+        }
 
         RCLCPP_INFO(this->get_logger(), "Sending goal");
 
@@ -118,7 +171,7 @@ public:
             std::bind(&GaitController::feedback_callback, this, _1, _2);
         send_goal_options.result_callback = 
             std::bind(&GaitController::result_callback, this, _1);
-        this->leg_0_step_client_ptr_->async_send_goal(goal_msg, send_goal_options);
+        step_client_ptr_->async_send_goal(goal_msg, send_goal_options);
     }
 
 private:
@@ -173,6 +226,11 @@ private:
 
     // Declarations
     rclcpp_action::Client<Target>::SharedPtr leg_0_step_client_ptr_;
+    rclcpp_action::Client<Target>::SharedPtr leg_1_step_client_ptr_;
+    rclcpp_action::Client<Target>::SharedPtr leg_2_step_client_ptr_;
+    rclcpp_action::Client<Target>::SharedPtr leg_3_step_client_ptr_;
+    rclcpp_action::Client<Target>::SharedPtr leg_4_step_client_ptr_;
+    rclcpp_action::Client<Target>::SharedPtr leg_5_step_client_ptr_;
     rclcpp::TimerBase::SharedPtr timer_;
 
     rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr leg_0_foot_position_subscriber_;
