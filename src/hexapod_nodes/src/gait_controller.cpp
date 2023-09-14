@@ -113,10 +113,10 @@ public:
 
         // Default command
         goal_msg.grounded = true;
-        goal_msg.speed = 0.50;
+        goal_msg.speed = 10;
         goal_msg.x_position = 0.0;
         goal_msg.y_position = 3.0;
-        goal_msg.z_position = -1.0;
+        goal_msg.z_position = 0.0;
 
         send_step_command(0, goal_msg);
         send_step_command(1, goal_msg);

@@ -75,7 +75,7 @@ class LegPositionBroadcaster: public rclcpp::Node
             joint_angles.position[2] = msg->joint2;
 
             // Publish the JointState message
-            RCLCPP_INFO(this->get_logger(), "Recieved motion command for leg %li:\njoint0: %f\njoint1: %f\njoint2: %f", this->get_parameter("leg_id").as_int(), msg->joint0, msg->joint1, msg->joint2);
+            // RCLCPP_INFO(this->get_logger(), "Recieved motion command for leg %li:\njoint0: %f\njoint1: %f\njoint2: %f", this->get_parameter("leg_id").as_int(), msg->joint0, msg->joint1, msg->joint2);
             publisher_->publish(joint_angles);
 
         }

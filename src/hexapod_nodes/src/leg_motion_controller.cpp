@@ -186,16 +186,30 @@ private:
         auto result = std::make_shared<Target::Result>();
 
         // The frequency with which to calculate new positions for the foot
-        rclcpp::Rate loop_rate(100);
+        rclcpp::Rate loop_rate(goal->speed);
 
         // The number of subdivisions of the movement (i.e. how many intermediate positions are passed through on the way to the target)
         // Fewer subdivisions for faster movement.
-        int num_divisions = 100 / goal->speed;
+
+        // The maximum distance moved in each subdivision of the motion
+        float max_division_distance = 0.1;
+        
+        // The distances covered by the foot in all 3 directions
+        float x_distance = (goal->x_position - foot_position.x_position);
+        float y_distance = (goal->y_position - foot_position.y_position);
+        float z_distance = (goal->z_position - foot_position.z_position);
+
+        RCLCPP_INFO(this->get_logger(), "Distance to cover in this motion:\nx: %lf\ny: %lf\nz: %lf\n", x_distance, y_distance, z_distance);
+
+        // The total distance covered by the foot
+        float total_distance = std::sqrt(std::pow(x_distance, 2) + std::pow(y_distance, 2) + std::pow(z_distance, 2));
+
+        int num_divisions = (int)(total_distance / max_division_distance);
 
         // Calculate how far the foot must move in each direction per subdivision
-        float x_distance_per_division = (goal->x_position - foot_position.x_position) / num_divisions;
-        float y_distance_per_division = (goal->y_position - foot_position.y_position) / num_divisions;
-        float z_distance_per_division = -(goal->z_position - foot_position.z_position) / num_divisions;
+        float x_distance_per_division = x_distance / num_divisions;
+        float y_distance_per_division = y_distance / num_divisions;
+        float z_distance_per_division = z_distance / num_divisions;
 
         // Move the legs through each subdivision. For each iteration, calculate the joint angles for the next position using
         // inverse kinematics, then publish that position on the command topic.
@@ -204,19 +218,20 @@ private:
             target_joint_angles = inverse_kinematics(foot_position.x_position + x_distance_per_division, foot_position.y_position + y_distance_per_division, -foot_position.z_position + z_distance_per_division);
 
             // Log the results and send the movement command to the leg servo controller on the leg_n/target_joint_angles topic
-            RCLCPP_INFO(this->get_logger(), "Sending command to leg %li:\njoint0: %lf\njoint1: %lf\njoint2: %lf", this->get_parameter("leg_id").as_int(), target_joint_angles.joint0, target_joint_angles.joint1, target_joint_angles.joint2);
+            // RCLCPP_INFO(this->get_logger(), "Sending command to leg %li:\njoint0: %lf\njoint1: %lf\njoint2: %lf", this->get_parameter("leg_id").as_int(), target_joint_angles.joint0, target_joint_angles.joint1, target_joint_angles.joint2);
             command_publisher_->publish(target_joint_angles);
 
             // Wait until it is time to move to the next position
             loop_rate.sleep();
 
-            RCLCPP_INFO(this->get_logger(), "foot_position/goal diff:\nx_position: %lf\ny_position: %lf\nz_position: %lf\n", std::abs(foot_position.x_position - goal->x_position), std::abs(foot_position.y_position - goal->y_position), std::abs(foot_position.z_position - goal->z_position));
+            // RCLCPP_INFO(this->get_logger(), "foot_position/goal diff:\nx_position: %lf\ny_position: %lf\nz_position: %lf\n", std::abs(foot_position.x_position - goal->x_position), std::abs(foot_position.y_position - goal->y_position), std::abs(foot_position.z_position - goal->z_position));
             
-            // Check if the final position has been reached.
-            if (std::abs(foot_position.x_position - goal->x_position) <= 0.1 && std::abs(foot_position.y_position - goal->y_position) <= 0.1 && std::abs(foot_position.z_position - goal->z_position) <= 0.1) {
+            // Check if the final position has been reached. This is done by seeing if the current position of the foot is less than half of the distance per subdivision away from the target. 
+            // It might not be exactly on the target position, but it must at least be close.
+            if (std::abs(foot_position.x_position - goal->x_position) <= 0.001 && std::abs(foot_position.y_position - goal->y_position) <= 0.001 && std::abs(foot_position.z_position - goal->z_position) <= 0.001) {
                 result->success = true;
                 goal_handle->succeed(result);
-                RCLCPP_INFO(this->get_logger(), "Goal succeeded");
+                // RCLCPP_INFO(this->get_logger(), "Goal succeeded");
             }
         }
     

@@ -7,6 +7,7 @@
 
 #include "hexapod_interfaces/action/leg_motion_command.hpp"
 #include "hexapod_interfaces/action/leg_step_command.hpp"
+#include "hexapod_interfaces/msg/foot_position.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 
@@ -61,6 +62,12 @@ public:
                 std::bind(&LegStepController::handle_step_cancel, this, _1),
                 std::bind(&LegStepController::handle_step_accepted, this, _1));
 
+
+            foot_position_subscriber_ = this->create_subscription<hexapod_interfaces::msg::FootPosition>(
+                "foot_position",
+                10,
+                std::bind(&LegStepController::foot_position_callback, this, _1));
+
         }
         catch(int e)
         {
@@ -88,7 +95,7 @@ public:
         // goal_msg.y_position = 1.0;
         // goal_msg.z_position = -1.0;
 
-        RCLCPP_INFO(this->get_logger(), "Sending goal");
+        RCLCPP_INFO(this->get_logger(), "Sending motion goal");
 
         auto send_motion_goal_options = rclcpp_action::Client<MotionTarget>::SendGoalOptions();
         send_motion_goal_options.goal_response_callback = 
@@ -111,7 +118,7 @@ private:
         if (!goal_handle) {
             RCLCPP_ERROR(this->get_logger(), "Goal was rejected by server");
         } else {
-            RCLCPP_INFO(this->get_logger(), "Goal accepted by server, waiting for result");
+            // RCLCPP_INFO(this->get_logger(), "Goal accepted by server, waiting for result");
         }
     }
     
@@ -127,6 +134,7 @@ private:
     // Function called when a result is received from an action
     void motion_result_callback(const GoalHandleMotionTarget::WrappedResult & result)
     {
+        motion_command_complete = 1;
         switch (result.code) {
             case rclcpp_action::ResultCode::SUCCEEDED:
                 break;
@@ -140,7 +148,17 @@ private:
                 RCLCPP_ERROR(this->get_logger(), "Unknown result code");
                 return;
         }
-        RCLCPP_INFO(this->get_logger(), "Step completed");
+        RCLCPP_INFO(this->get_logger(), "Motion goal completed");
+    }
+
+    // ########## FOOT POSITION CALLBACK ##########
+
+    // Function called when the position of a foot is received
+    void foot_position_callback(const hexapod_interfaces::msg::FootPosition & position_msg) 
+    {
+        foot_position.x_position = position_msg.x_position;
+        foot_position.y_position = position_msg.y_position;
+        foot_position.z_position = position_msg.z_position;
     }
 
 
@@ -152,7 +170,7 @@ private:
         std::shared_ptr<const StepTarget::Goal> goal)
     {
         // For now just accept all commands
-        RCLCPP_INFO(this->get_logger(), "Received step command:\ngronded: %i\nspeed: %lf\nx_position: %lf\ny_position: %lf\nz_position: %lf", goal->grounded, goal->speed, goal->x_position, goal->y_position, goal->z_position);
+        RCLCPP_INFO(this->get_logger(), "Received step command:\ngrounded: %i\nspeed: %lf\nx_position: %lf\ny_position: %lf\nz_position: %lf", goal->grounded, goal->speed, goal->x_position, goal->y_position, goal->z_position);
         (void)uuid;
         return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
     }
@@ -175,22 +193,115 @@ private:
         std::thread{std::bind(&LegStepController::execute, this, _1), goal_handle}.detach();
     }
 
+    // This function calculates the height at a given position x along the parabola with the equation
+    // y = 0.5(1/n)(n-x)(x), where n is the distance between the two x-intercepts.
+    // This parabola maintains the same shape scaled up or down depending on the value of n.
+    float calculate_height_on_parabola(float x, float n) {
+        return 0.5 * (1 / n) * (n - x) * x;
+    }
+
     // The function to execute when working towards a goal
     void execute(const std::shared_ptr<GoalHandleStepTarget> goal_handle)
     {
-        RCLCPP_INFO(this->get_logger(), "Executing goal");
+        // RCLCPP_INFO(this->get_logger(), "Executing goal");
         const auto goal = goal_handle->get_goal();
         auto feedback = std::make_shared<StepTarget::Feedback>();
         auto result = std::make_shared<StepTarget::Result>();
 
-        // Step planning goes here, for now just echo 
-        auto goal_msg = MotionTarget::Goal();
-        goal_msg.speed = goal->speed;
-        goal_msg.x_position = goal->x_position;
-        goal_msg.y_position = goal->y_position;
-        goal_msg.z_position = goal->z_position;
+        auto motion_goal = MotionTarget::Goal();
 
-        send_motion_goal(goal_msg);
+
+
+
+        // Step planning 
+
+
+        // The number of subdivisions of the movement (i.e. how many intermediate positions are passed through on the way to the target)
+        // Fewer subdivisions for faster movement.
+        int num_divisions = 10;
+
+        // If goal->grounded is set to false, the foot will trace a parabola between its starting and ending points in order to not
+        // drag along the ground. This is done by adding the y value of the curve the z_position of the foot for the distance travelled
+        // (e.g. halfway through the step, it reaches the vertex)
+
+        // The distances covered by the foot in all 3 directions
+        float x_distance = (goal->x_position - foot_position.x_position);
+        float y_distance = (goal->y_position - foot_position.y_position);
+        float z_distance = (goal->z_position - foot_position.z_position);
+
+        RCLCPP_INFO(this->get_logger(), "Distance to cover in this step:\nx: %lf\ny: %lf\nz: %lf\n", x_distance, y_distance, z_distance);
+
+        // The total distance covered by the foot
+        float total_distance = std::sqrt(std::pow(x_distance, 2) + std::pow(y_distance, 2) + std::pow(z_distance, 2));
+
+        // Variable used to hold the value of how much the foot should be raised by
+        float added_height = 0;
+
+        // Calculate how far the foot must move in each direction per subdivision
+        float x_distance_per_division = x_distance / num_divisions;
+        float y_distance_per_division = y_distance / num_divisions;
+        float z_distance_per_division = z_distance / num_divisions;
+
+        RCLCPP_INFO(this->get_logger(), "Distance to cover in this step per subdivision:\nx: %lf\ny: %lf\nz: %lf\n", x_distance_per_division, y_distance_per_division, z_distance_per_division);
+
+        // The total distance the foot moves per subdivision
+        float total_distance_per_division = std::sqrt(std::pow(x_distance_per_division, 2) + std::pow(y_distance_per_division, 2) + std::pow(z_distance_per_division, 2));
+
+        // The frequency with which to check if the foot has finished its subdivision
+        rclcpp::Rate motion_command_check_rate(10);
+
+        // Move the legs through each subdivision. For each iteration, calculate the joint angles for the next position using
+        // inverse kinematics, then publish that position on the command topic.
+        for (int i = 0; i < num_divisions && rclcpp::ok() && result->success == false; i++) {
+            
+            if (!goal->grounded) {
+                added_height = calculate_height_on_parabola(total_distance, i * total_distance_per_division);
+            }
+
+        
+
+
+                
+
+            // Calculate the next position of the foot along the path
+            motion_goal.speed = goal->speed;
+            motion_goal.x_position = foot_position.x_position + x_distance_per_division;
+            motion_goal.y_position = foot_position.y_position + y_distance_per_division;
+            // This is wrong, it results in the foot going up to the sky
+            // motion_goal.z_position = foot_position.z_position + z_distance_per_division + added_height;
+            motion_goal.z_position = foot_position.z_position + z_distance_per_division;
+            
+            // RCLCPP_INFO(this->get_logger(), "foot_x_position: %lf\nx_distance_per_division: %lf\nmotion_goal_x_position: %lf", foot_position.x_position, x_distance_per_division, motion_goal.x_position);
+
+            send_motion_goal(motion_goal);
+
+
+            // Wait for the motion command to be completed. 
+            while (!motion_command_complete) 
+            {
+                motion_command_check_rate.sleep();
+            }
+
+            motion_command_complete = 0;
+            
+
+        }    
+        // Check if the final position has been reached.
+        if (std::abs(foot_position.x_position - goal->x_position) <= 0.01 && std::abs(foot_position.y_position - goal->y_position) <= 0.01 && std::abs(foot_position.z_position - goal->z_position) <= 0.01) 
+        {
+            result->success = true;
+            goal_handle->succeed(result);
+            RCLCPP_INFO(this->get_logger(), "Step goal succeeded");
+        }
+        else 
+        {
+            goal_handle->abort(result);
+            RCLCPP_INFO(this->get_logger(), "Step goal aborted");
+        }
+        
+
+
+
     }
 
 
@@ -200,7 +311,11 @@ private:
     rclcpp_action::Client<MotionTarget>::SharedPtr leg_motion_command_client_ptr_;
     rclcpp_action::Server<StepTarget>::SharedPtr leg_step_command_server_;
 
+
+    rclcpp::Subscription<hexapod_interfaces::msg::FootPosition>::SharedPtr foot_position_subscriber_;
+    hexapod_interfaces::msg::FootPosition foot_position;
     hexapod_interfaces::action::LegMotionCommand command;
+    char motion_command_complete = 1;
 
 };   // class LegStepController
 

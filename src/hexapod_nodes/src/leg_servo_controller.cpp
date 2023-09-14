@@ -47,7 +47,7 @@ class LegServoController : public rclcpp::Node
         void topic_callback(const hexapod_interfaces::msg::JointAngles & msg) const
         {
             // Currently, this does nothing. This will remain empty until the hardware component of the project is built.
-            RCLCPP_INFO(this->get_logger(), "Recieved motion command for leg %li:\njoint0: %f\njoint1: %f\njoint2: %f", this->get_parameter("leg_id").as_int(), msg.joint0, msg.joint1, msg.joint2);
+            // RCLCPP_INFO(this->get_logger(), "Recieved motion command for leg %li:\njoint0: %f\njoint1: %f\njoint2: %f", this->get_parameter("leg_id").as_int(), msg.joint0, msg.joint1, msg.joint2);
         }
 
         // Declarations
