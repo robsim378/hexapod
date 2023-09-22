@@ -185,6 +185,7 @@ private:
         auto feedback = std::make_shared<Target::Feedback>();
         auto result = std::make_shared<Target::Result>();
 
+
         // The frequency with which to calculate new positions for the foot
         rclcpp::Rate loop_rate(goal->speed);
 

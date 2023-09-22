@@ -103,6 +103,10 @@ public:
                 this->foot_position_callback(msg, 5);
             });
 
+        rclcpp::Rate start_delay(1);
+
+        start_delay.sleep();
+
         default_position();
     }
 
@@ -116,7 +120,7 @@ public:
         goal_msg.speed = 10;
         goal_msg.x_position = 0.0;
         goal_msg.y_position = 3.0;
-        goal_msg.z_position = 0.0;
+        goal_msg.z_position = -1.0;
 
         send_step_command(0, goal_msg);
         send_step_command(1, goal_msg);

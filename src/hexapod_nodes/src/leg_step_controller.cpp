@@ -196,7 +196,7 @@ private:
     // This function calculates the height at a given position x along the parabola with the equation
     // y = 0.5(1/n)(n-x)(x), where n is the distance between the two x-intercepts.
     // This parabola maintains the same shape scaled up or down depending on the value of n.
-    float calculate_height_on_parabola(float x, float n) {
+    float calculate_height_on_parabola(float n, float x) {
         return 0.5 * (1 / n) * (n - x) * x;
     }
 
@@ -220,6 +220,11 @@ private:
         // Fewer subdivisions for faster movement.
         int num_divisions = 10;
 
+        // Variable used to hold the value of how much the foot should be raised by
+        float added_height = 0;
+        float new_height = 0;
+        float last_height = 0;
+
         // If goal->grounded is set to false, the foot will trace a parabola between its starting and ending points in order to not
         // drag along the ground. This is done by adding the y value of the curve the z_position of the foot for the distance travelled
         // (e.g. halfway through the step, it reaches the vertex)
@@ -229,23 +234,23 @@ private:
         float y_distance = (goal->y_position - foot_position.y_position);
         float z_distance = (goal->z_position - foot_position.z_position);
 
-        RCLCPP_INFO(this->get_logger(), "Distance to cover in this step:\nx: %lf\ny: %lf\nz: %lf\n", x_distance, y_distance, z_distance);
 
         // The total distance covered by the foot
         float total_distance = std::sqrt(std::pow(x_distance, 2) + std::pow(y_distance, 2) + std::pow(z_distance, 2));
 
-        // Variable used to hold the value of how much the foot should be raised by
-        float added_height = 0;
+        RCLCPP_INFO(this->get_logger(), "Distance to cover in this step:\nx: %lf\ny: %lf\nz: %lf\ntotal: %lf\n", x_distance, y_distance, z_distance, total_distance);
+        
 
         // Calculate how far the foot must move in each direction per subdivision
         float x_distance_per_division = x_distance / num_divisions;
         float y_distance_per_division = y_distance / num_divisions;
         float z_distance_per_division = z_distance / num_divisions;
 
-        RCLCPP_INFO(this->get_logger(), "Distance to cover in this step per subdivision:\nx: %lf\ny: %lf\nz: %lf\n", x_distance_per_division, y_distance_per_division, z_distance_per_division);
 
         // The total distance the foot moves per subdivision
         float total_distance_per_division = std::sqrt(std::pow(x_distance_per_division, 2) + std::pow(y_distance_per_division, 2) + std::pow(z_distance_per_division, 2));
+
+        RCLCPP_INFO(this->get_logger(), "Distance to cover in this step per subdivision:\nx: %lf\ny: %lf\nz: %lf\ntotal: %lf\n", x_distance_per_division, y_distance_per_division, z_distance_per_division, total_distance_per_division);
 
         // The frequency with which to check if the foot has finished its subdivision
         rclcpp::Rate motion_command_check_rate(10);
@@ -255,7 +260,10 @@ private:
         for (int i = 0; i < num_divisions && rclcpp::ok() && result->success == false; i++) {
             
             if (!goal->grounded) {
-                added_height = calculate_height_on_parabola(total_distance, i * total_distance_per_division);
+                last_height = new_height;
+                new_height = calculate_height_on_parabola(total_distance, (i + 1) * total_distance_per_division);
+                added_height = new_height - last_height;
+                RCLCPP_INFO(this->get_logger(), "Height of foot on parabola: %lf\n", new_height);
             }
 
         
@@ -269,7 +277,7 @@ private:
             motion_goal.y_position = foot_position.y_position + y_distance_per_division;
             // This is wrong, it results in the foot going up to the sky
             // motion_goal.z_position = foot_position.z_position + z_distance_per_division + added_height;
-            motion_goal.z_position = foot_position.z_position + z_distance_per_division;
+            motion_goal.z_position = -(-foot_position.z_position + z_distance_per_division + added_height);
             
             // RCLCPP_INFO(this->get_logger(), "foot_x_position: %lf\nx_distance_per_division: %lf\nmotion_goal_x_position: %lf", foot_position.x_position, x_distance_per_division, motion_goal.x_position);
 
