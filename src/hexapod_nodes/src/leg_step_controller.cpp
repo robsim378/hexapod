@@ -139,10 +139,10 @@ private:
             case rclcpp_action::ResultCode::SUCCEEDED:
                 break;
             case rclcpp_action::ResultCode::ABORTED:
-                RCLCPP_ERROR(this->get_logger(), "Goal was aborted");
+                RCLCPP_ERROR(this->get_logger(), "Motion goal was aborted");
                 return;
             case rclcpp_action::ResultCode::CANCELED:
-                RCLCPP_ERROR(this->get_logger(), "Goal was canceled");
+                RCLCPP_ERROR(this->get_logger(), "Motion goal was canceled");
                 return;
             default:
                 RCLCPP_ERROR(this->get_logger(), "Unknown result code");
@@ -263,26 +263,15 @@ private:
                 last_height = new_height;
                 new_height = calculate_height_on_parabola(total_distance, (i + 1) * total_distance_per_division);
                 added_height = new_height - last_height;
-                RCLCPP_INFO(this->get_logger(), "Height of foot on parabola: %lf\n", new_height);
             }
-
-        
-
-
-                
 
             // Calculate the next position of the foot along the path
             motion_goal.speed = goal->speed;
             motion_goal.x_position = foot_position.x_position + x_distance_per_division;
             motion_goal.y_position = foot_position.y_position + y_distance_per_division;
-            // This is wrong, it results in the foot going up to the sky
-            // motion_goal.z_position = foot_position.z_position + z_distance_per_division + added_height;
-            motion_goal.z_position = -(-foot_position.z_position + z_distance_per_division + added_height);
+            motion_goal.z_position = foot_position.z_position + z_distance_per_division + added_height;
             
-            // RCLCPP_INFO(this->get_logger(), "foot_x_position: %lf\nx_distance_per_division: %lf\nmotion_goal_x_position: %lf", foot_position.x_position, x_distance_per_division, motion_goal.x_position);
-
             send_motion_goal(motion_goal);
-
 
             // Wait for the motion command to be completed. 
             while (!motion_command_complete) 
@@ -291,20 +280,19 @@ private:
             }
 
             motion_command_complete = 0;
-            
-
         }    
+        RCLCPP_INFO(this->get_logger(), "current_x_position - goal_x_position diff: %lf\ncurrent_y_position - goal_y_position diff: %lf\ncurrent_z_position - goal_z_position diff: %lf\n", std::abs(foot_position.x_position - goal->x_position), std::abs(foot_position.y_position - goal->y_position), std::abs(foot_position.z_position - goal->z_position));
         // Check if the final position has been reached.
         if (std::abs(foot_position.x_position - goal->x_position) <= 0.01 && std::abs(foot_position.y_position - goal->y_position) <= 0.01 && std::abs(foot_position.z_position - goal->z_position) <= 0.01) 
         {
             result->success = true;
             goal_handle->succeed(result);
-            RCLCPP_INFO(this->get_logger(), "Step goal succeeded");
+            // RCLCPP_INFO(this->get_logger(), "Step goal succeeded");
         }
         else 
         {
             goal_handle->abort(result);
-            RCLCPP_INFO(this->get_logger(), "Step goal aborted");
+            // RCLCPP_INFO(this->get_logger(), "Step goal aborted");
         }
         
 

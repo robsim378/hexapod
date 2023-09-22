@@ -166,7 +166,7 @@ public:
             rclcpp::shutdown();
         }
 
-        RCLCPP_INFO(this->get_logger(), "Sending goal");
+        // RCLCPP_INFO(this->get_logger(), "Sending goal");
 
         auto send_goal_options = rclcpp_action::Client<Target>::SendGoalOptions();
         send_goal_options.goal_response_callback = 
@@ -204,10 +204,10 @@ private:
             case rclcpp_action::ResultCode::SUCCEEDED:
                 break;
             case rclcpp_action::ResultCode::ABORTED:
-                RCLCPP_ERROR(this->get_logger(), "Goal was aborted");
+                RCLCPP_ERROR(this->get_logger(), "Step was aborted");
                 return;
             case rclcpp_action::ResultCode::CANCELED:
-                RCLCPP_ERROR(this->get_logger(), "Goal was canceled");
+                RCLCPP_ERROR(this->get_logger(), "Step was canceled");
                 return;
             default:
                 RCLCPP_ERROR(this->get_logger(), "Unknown result code");

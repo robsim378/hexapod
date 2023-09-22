@@ -164,7 +164,7 @@ private:
         const std::shared_ptr<GoalHandleTarget> goal_handle)
     {
         // For now just accept all cancellations
-        RCLCPP_INFO(this->get_logger(), "Received request to cancel goal");
+        RCLCPP_INFO(this->get_logger(), "Received request to cancel motion goal");
         (void)goal_handle;
         return rclcpp_action::CancelResponse::ACCEPT;
     }
@@ -180,7 +180,7 @@ private:
     // The function to execute when working towards a goal
     void execute(const std::shared_ptr<GoalHandleTarget> goal_handle)
     {
-        RCLCPP_INFO(this->get_logger(), "Executing goal");
+        // RCLCPP_INFO(this->get_logger(), "Executing motion goal");
         const auto goal = goal_handle->get_goal();
         auto feedback = std::make_shared<Target::Feedback>();
         auto result = std::make_shared<Target::Result>();
@@ -227,13 +227,20 @@ private:
 
             // RCLCPP_INFO(this->get_logger(), "foot_position/goal diff:\nx_position: %lf\ny_position: %lf\nz_position: %lf\n", std::abs(foot_position.x_position - goal->x_position), std::abs(foot_position.y_position - goal->y_position), std::abs(foot_position.z_position - goal->z_position));
             
-            // Check if the final position has been reached. This is done by seeing if the current position of the foot is less than half of the distance per subdivision away from the target. 
+        }
+        RCLCPP_INFO(this->get_logger(), "current_x_position - goal_x_position diff: %lf\ncurrent_y_position - goal_y_position diff: %lf\ncurrent_z_position - goal_z_position diff: %lf\n", std::abs(foot_position.x_position - goal->x_position), std::abs(foot_position.y_position - goal->y_position), std::abs(foot_position.z_position - goal->z_position));
+        // Check if the final position has been reached. This is done by seeing if the current position of the foot is less than half of the distance per subdivision away from the target. 
             // It might not be exactly on the target position, but it must at least be close.
-            if (std::abs(foot_position.x_position - goal->x_position) <= 0.001 && std::abs(foot_position.y_position - goal->y_position) <= 0.001 && std::abs(foot_position.z_position - goal->z_position) <= 0.001) {
-                result->success = true;
-                goal_handle->succeed(result);
-                // RCLCPP_INFO(this->get_logger(), "Goal succeeded");
-            }
+        if (std::abs(foot_position.x_position - goal->x_position) <= 0.001 && std::abs(foot_position.y_position - goal->y_position) <= 0.001 && std::abs(foot_position.z_position - goal->z_position) <= 0.001) 
+        {
+            result->success = true;
+            goal_handle->succeed(result);
+            // RCLCPP_INFO(this->get_logger(), "Step goal succeeded");
+        }
+        else 
+        {
+            goal_handle->abort(result);
+            // RCLCPP_INFO(this->get_logger(), "Step goal aborted");
         }
     
     }
