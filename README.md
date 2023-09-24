@@ -32,24 +32,24 @@ This project uses ROS2 Humble and contains the following nodes:
 - **Input Handler** *[not yet implemented]*
     - Handles receiving input and converting it into a format intelligible by the gait controller.
     - Input can come from a number of sources. Initially, it will come from a gamepad such as an Xbox controller. Eventually, it may come from an autonomous control system. Some tests will also provide input here.
-- [**Gait Controller**](../src/hexapod_nodes/src/gait_controller.cpp)
+- [**Gait Controller**](/src/hexapod_nodes/src/gait_controller.cpp)
     - Determines, based on the input and the current state of the legs, where to move each leg and how fast they should move.
     - One instance of this runs for the entire system and sends commands to each leg.
     - Currently not implemented beyond providing a starting position.
-- [**Leg Step Controller**](../src/hexapod_nodes/src/leg_step_controller.cpp)
+- [**Leg Step Controller**](/src/hexapod_nodes/src/leg_step_controller.cpp)
     - One instance of this runs for each leg and recieves commands from the Gait Controller.
     - Recieves a target position for the foot it is responsible for and plots a path for the foot to take. 
         - For legs that are on the ground and moving the robot forward, moves them in a straight line.
         - For legs that are raised and being brought foward to prepare for the next step, moves them in a curve off the ground.
     - Sends the path to be taken to the Leg Motion controller
-- [**Leg Motion Controller**](../src/hexapod_nodes/src/leg_motion_controller.cpp)
+- [**Leg Motion Controller**](/src/hexapod_nodes/src/leg_motion_controller.cpp)
     - One instance of this runs for each leg and receives commands from its Leg Step Controller
     - Receives points along the path calculated by the Leg Step Controller and handles the inverse kinematics to determine the angles of each joint to place the foot in the next point, then sends commands to the Leg Servo Controller to move the leg to that position.
-- [**Leg Servo Controller**](../src/hexapod_nodes/src/leg_servo_controller.cpp)
+- [**Leg Servo Controller**](/src/hexapod_nodes/src/leg_servo_controller.cpp)
     - One instance of this runs for each leg and receives commands from its Leg Motion Controller.
     - Receives angles for each joint in a leg and sends commands to the servo motors in its leg to move to the corresponding positions.
     - Not yet implemented as I have not purchased any hardware for the system since I want to get the core sofware done first.
-- [**Leg Position Broadcaster**](../src/hexapod_nodes/src/leg_position_broadcaster.cpp)
+- [**Leg Position Broadcaster**](/src/hexapod_nodes/src/leg_position_broadcaster.cpp)
     - One instance of this runs for each leg and receives the same commands as the Leg Servo Controller.
     - Receives angles for each joint and publishes them to the tf2 topic, which is read by RVIZ and used for visualizing the robot in simulation.
 
